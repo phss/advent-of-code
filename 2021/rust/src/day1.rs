@@ -5,11 +5,24 @@ pub fn part1() -> u32 {
     calculate_increases(measurements)
 }
 
+pub fn part2() -> u32 {
+    let mut measurements = parse("data/day1.txt");
+    measurements = sliding_windows_sums(&measurements);
+    calculate_increases(measurements)
+}
+
 fn parse(filename: &str) -> Vec<u32> {
     let contents = fs::read_to_string(filename).expect("unable to read file");
     contents
         .split("\n")
         .map(|line| line.parse().expect("not a number"))
+        .collect()
+}
+
+fn sliding_windows_sums(measurements: &Vec<u32>) -> Vec<u32> {
+    measurements
+        .windows(3)
+        .map(|window| window.iter().sum())
         .collect()
 }
 
@@ -27,7 +40,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn sample_input() {
+    fn increases_in_sample_input() {
         let measurements = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
         assert_eq!(calculate_increases(measurements), 7);
     }
@@ -42,5 +55,14 @@ mod tests {
     fn no_increases() {
         let measurements = vec![3, 2, 1];
         assert_eq!(calculate_increases(measurements), 0);
+    }
+
+    #[test]
+    fn sliding_windows_measurements() {
+        let measurements = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
+        assert_eq!(
+            sliding_windows_sums(&measurements),
+            vec![607, 618, 618, 617, 647, 716, 769, 792]
+        );
     }
 }
