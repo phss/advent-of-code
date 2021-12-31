@@ -14,13 +14,12 @@ fn parse(filename: &str) -> Vec<u32> {
 }
 
 fn calculate_increases(measurements: Vec<u32>) -> u32 {
-    let mut increases = 0;
-    for ms in measurements.windows(2) {
-        if matches!(ms,  [a, b] if b > a) {
-            increases += 1;
-        }
-    }
-    increases
+    measurements
+        .windows(2)
+        .filter(|pair| matches!(pair, [a, b] if b > a))
+        .count()
+        .try_into()
+        .unwrap()
 }
 
 #[cfg(test)]
