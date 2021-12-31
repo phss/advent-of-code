@@ -1,16 +1,16 @@
 use std::fs;
 
 pub fn part1() -> u32 {
-    let input_file = "data/day1.txt";
+    let measurements = parse("data/day1.txt");
+    calculate_increases(measurements)
+}
 
-    // Parse input file
-    let contents = fs::read_to_string(input_file).expect("unable to read file");
-    let lines = contents.split("\n");
-    let report: Vec<u32> = lines
+fn parse(filename: &str) -> Vec<u32> {
+    let contents = fs::read_to_string(filename).expect("unable to read file");
+    contents
+        .split("\n")
         .map(|line| line.parse().expect("not a number"))
-        .collect();
-
-    calculate_increases(report)
+        .collect()
 }
 
 fn calculate_increases(measurements: Vec<u32>) -> u32 {
@@ -28,8 +28,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn increases() {
+    fn sample_input() {
         let measurements = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
         assert_eq!(calculate_increases(measurements), 7);
+    }
+
+    #[test]
+    fn only_increases() {
+        let measurements = vec![1, 2, 3];
+        assert_eq!(calculate_increases(measurements), 2);
+    }
+
+    #[test]
+    fn no_increases() {
+        let measurements = vec![3, 2, 1];
+        assert_eq!(calculate_increases(measurements), 0);
     }
 }
