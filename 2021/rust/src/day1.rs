@@ -1,22 +1,14 @@
-use std::fs;
+use crate::parser::{self, to_number};
 
 pub fn part1() -> u32 {
-    let measurements = parse("data/day1.txt");
+    let measurements = parser::read("data/day1.txt", to_number);
     calculate_increases(measurements)
 }
 
 pub fn part2() -> u32 {
-    let mut measurements = parse("data/day1.txt");
+    let mut measurements = parser::read("data/day1.txt", to_number);
     measurements = sliding_windows_sums(&measurements);
     calculate_increases(measurements)
-}
-
-fn parse(filename: &str) -> Vec<u32> {
-    let contents = fs::read_to_string(filename).expect("unable to read file");
-    contents
-        .split("\n")
-        .map(|line| line.parse().expect("not a number"))
-        .collect()
 }
 
 fn sliding_windows_sums(measurements: &Vec<u32>) -> Vec<u32> {
