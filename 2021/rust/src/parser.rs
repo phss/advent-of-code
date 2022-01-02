@@ -1,14 +1,9 @@
-use std::{fmt::Debug, fs, io::Error, str::FromStr};
+use std::{fs, str::FromStr};
 
-pub fn read<T>(filename: &str) -> Result<Vec<T>, Error>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug,
-{
-    fs::read_to_string(filename).map(|contents| {
-        contents
-            .split("\n")
-            .map(|line| line.parse().unwrap())
-            .collect()
-    })
+pub fn read<T: FromStr>(filename: &str) -> Result<Vec<T>, <T as FromStr>::Err> {
+    fs::read_to_string(filename)
+        .expect("file not found")
+        .lines()
+        .map(FromStr::from_str)
+        .collect()
 }
