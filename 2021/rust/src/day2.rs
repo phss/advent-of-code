@@ -31,7 +31,7 @@ impl FromStr for Command {
 }
 
 pub fn part1() -> u32 {
-    let commands: Vec<Command> = parser::read("data/temp.txt", |line| line.parse().unwrap());
+    let commands: Vec<Command> = parser::read("data/temp.txt");
     println!("{:?}", commands);
     0
 }

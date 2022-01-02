@@ -1,10 +1,13 @@
-use std::fs;
+use std::{fmt::Debug, fs, str::FromStr};
 
-pub fn read<T>(filename: &str, parse_line: fn(&str) -> T) -> Vec<T> {
+pub fn read<T>(filename: &str) -> Vec<T>
+where
+    T: FromStr,
+    <T as FromStr>::Err: Debug,
+{
     let contents = fs::read_to_string(filename).expect("unable to read file");
-    contents.split("\n").map(parse_line).collect()
-}
-
-pub fn to_number(line: &str) -> u32 {
-    line.parse().expect("not a number")
+    contents
+        .split("\n")
+        .map(|line| line.parse().unwrap())
+        .collect()
 }
