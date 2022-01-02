@@ -1,12 +1,12 @@
 use crate::parser;
 
 pub fn part1() -> u32 {
-    let measurements = parser::read("data/day1.txt");
+    let measurements = parser::read("data/day1.txt").unwrap();
     calculate_increases(measurements)
 }
 
 pub fn part2() -> u32 {
-    let mut measurements = parser::read("data/day1.txt");
+    let mut measurements = parser::read("data/day1.txt").unwrap();
     measurements = sliding_windows_sums(&measurements);
     calculate_increases(measurements)
 }
