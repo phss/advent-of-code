@@ -8,6 +8,7 @@ enum Command {
     Down(u32),
     Up(u32),
 }
+
 #[derive(Debug, Clone)]
 struct ParseCommandError;
 
@@ -42,6 +43,12 @@ pub fn part1() -> u32 {
     location.horizontal_position * location.depth
 }
 
+pub fn part2() -> u32 {
+    let commands: Vec<Command> = parser::read("data/day2.txt").unwrap();
+    let location = estimate_location_with_aim(commands);
+    location.horizontal_position * location.depth
+}
+
 fn estimate_location(commands: Vec<Command>) -> Location {
     let mut location = Location {
         horizontal_position: 0,
@@ -53,6 +60,27 @@ fn estimate_location(commands: Vec<Command>) -> Location {
             Command::Forward(value) => location.horizontal_position += value,
             Command::Down(value) => location.depth += value,
             Command::Up(value) => location.depth -= value,
+        }
+    }
+
+    location
+}
+
+fn estimate_location_with_aim(commands: Vec<Command>) -> Location {
+    let mut aim = 0;
+    let mut location = Location {
+        horizontal_position: 0,
+        depth: 0,
+    };
+
+    for command in commands {
+        match command {
+            Command::Forward(value) => {
+                location.horizontal_position += value;
+                location.depth += aim * value;
+            }
+            Command::Down(value) => aim += value,
+            Command::Up(value) => aim -= value,
         }
     }
 
@@ -79,6 +107,26 @@ mod tests {
             Location {
                 horizontal_position: 15,
                 depth: 10
+            }
+        );
+    }
+
+    #[test]
+    fn sample_input_estimated_position_with_aim() {
+        let commands = vec![
+            Command::Forward(5),
+            Command::Down(5),
+            Command::Forward(8),
+            Command::Up(3),
+            Command::Down(8),
+            Command::Forward(2),
+        ];
+
+        assert_eq!(
+            estimate_location_with_aim(commands),
+            Location {
+                horizontal_position: 15,
+                depth: 60
             }
         );
     }
