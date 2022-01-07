@@ -17,17 +17,21 @@ impl FromStr for Command {
 
     fn from_str(s: &str) -> Result<Self, ParseCommandError> {
         let mut splitted_line = s.split_whitespace();
-        let command = match splitted_line.next() {
-            Some("forward") => Command::Forward,
-            Some("down") => Command::Down,
-            Some("up") => Command::Up,
-            _ => return Err(ParseCommandError),
-        };
-        let value = splitted_line
+        let command = splitted_line
             .next()
-            .map(|v| v.parse().unwrap())
-            .expect("malformed value");
-        Ok(command(value))
+            .and_then(|v| -> Option<fn(u32) -> Command> {
+                match v {
+                    "forward" => Some(Command::Forward),
+                    "down" => Some(Command::Down),
+                    "up" => Some(Command::Up),
+                    _ => None,
+                }
+            });
+        let value: Option<u32> = splitted_line.next().and_then(|v| v.parse().ok());
+        match (command, value) {
+            (Some(command), Some(value)) => Ok(command(value)),
+            _ => Err(ParseCommandError),
+        }
     }
 }
 
