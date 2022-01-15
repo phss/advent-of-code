@@ -1,7 +1,14 @@
+use crate::parser;
+
+fn to_number(binary_string: &String) -> u32 {
+    let number = isize::from_str_radix(binary_string, 2).unwrap();
+    number.try_into().unwrap()
+}
+
 pub fn part1() -> u32 {
-    let a: u32 = 0b0;
-    println!("{}", a >> 0 & 1);
-    a.leading_zeros()
+    let lines: Vec<String> = parser::read("data/day3.txt").unwrap();
+    let diagnostic_report = lines.iter().map(to_number).collect();
+    power_consumption(diagnostic_report)
 }
 
 fn power_consumption(diagnostic_report: Vec<u32>) -> u32 {
