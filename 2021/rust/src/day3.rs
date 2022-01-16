@@ -25,21 +25,36 @@ fn max_bits_length(numbers: &Vec<u32>) -> u32 {
         .unwrap()
 }
 
+fn most_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
+    let half_numbers: u32 = numbers.len().try_into().unwrap();
+    let mut ones = 0;
+
+    for number in numbers.iter() {
+        ones += number >> position & 1;
+    }
+    (ones > (half_numbers / 2)) as u32
+}
+
+fn least_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
+    let half_numbers: u32 = numbers.len().try_into().unwrap();
+    let mut ones = 0;
+
+    for number in numbers.iter() {
+        ones += number >> position & 1;
+    }
+    (ones < (half_numbers / 2)) as u32
+}
+
 fn power_consumption(diagnostic_report: Vec<u32>) -> u32 {
-    let half_reports: u32 = diagnostic_report.len().try_into().unwrap();
     let mut gamma_rate: u32 = 0;
     let mut epsilon_rate: u32 = 0;
 
-    for i in 0..max_bits_length(&diagnostic_report) {
-        let mut ones = 0;
-        for number in diagnostic_report.iter() {
-            ones += number >> i & 1;
-        }
-        let most_common = (ones > (half_reports / 2)) as u32;
-        let least_common = (ones < (half_reports / 2)) as u32;
+    for position in 0..max_bits_length(&diagnostic_report) {
+        let most_common = most_common_bit_at(position, &diagnostic_report);
+        let least_common = least_common_bit_at(position, &diagnostic_report);
 
-        gamma_rate += most_common << i;
-        epsilon_rate += least_common << i;
+        gamma_rate += most_common << position;
+        epsilon_rate += least_common << position;
     }
 
     gamma_rate * epsilon_rate
@@ -77,5 +92,17 @@ mod tests {
     fn max_length() {
         let numbers = vec![0b1, 0b11, 0b111111, 0b11];
         assert_eq!(max_bits_length(&numbers), 6)
+    }
+
+    #[test]
+    fn most_common_bit() {
+        let numbers = vec![0b00, 0b11, 0b01, 0b11];
+        assert_eq!(most_common_bit_at(0, &numbers), 1)
+    }
+
+    #[test]
+    fn least_common_bit() {
+        let numbers = vec![0b00, 0b11, 0b01, 0b11];
+        assert_eq!(least_common_bit_at(0, &numbers), 0)
     }
 }
