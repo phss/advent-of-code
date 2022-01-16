@@ -11,18 +11,26 @@ pub fn part1() -> u32 {
     power_consumption(diagnostic_report)
 }
 
+pub fn part2() -> u32 {
+    let lines: Vec<String> = parser::read("data/day3.txt").unwrap();
+    let diagnostic_report = lines.iter().map(to_number).collect();
+    life_support_rating(diagnostic_report)
+}
+
+fn max_bits_length(numbers: &Vec<u32>) -> u32 {
+    numbers
+        .iter()
+        .map(|number| 32 - number.leading_zeros())
+        .max()
+        .unwrap()
+}
+
 fn power_consumption(diagnostic_report: Vec<u32>) -> u32 {
     let half_reports: u32 = diagnostic_report.len().try_into().unwrap();
     let mut gamma_rate: u32 = 0;
     let mut epsilon_rate: u32 = 0;
 
-    let length_of_bits = diagnostic_report
-        .iter()
-        .map(|number| 32 - number.leading_zeros())
-        .max()
-        .unwrap();
-
-    for i in 0..length_of_bits {
+    for i in 0..max_bits_length(&diagnostic_report) {
         let mut ones = 0;
         for number in diagnostic_report.iter() {
             ones += number >> i & 1;
@@ -37,6 +45,10 @@ fn power_consumption(diagnostic_report: Vec<u32>) -> u32 {
     gamma_rate * epsilon_rate
 }
 
+fn life_support_rating(diagnostic_report: Vec<u32>) -> u32 {
+    0
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -49,5 +61,21 @@ mod tests {
         ];
 
         assert_eq!(power_consumption(diagnostic_report), 198);
+    }
+
+    // #[test]
+    // fn sample_input_life_support_rating() {
+    //     let diagnostic_report: Vec<u32> = vec![
+    //         0b00100, 0b11110, 0b10110, 0b10111, 0b10101, 0b01111, 0b00111, 0b11100, 0b10000,
+    //         0b11001, 0b00010, 0b01010,
+    //     ];
+
+    //     assert_eq!(life_support_rating(diagnostic_report), 230);
+    // }
+
+    #[test]
+    fn max_length() {
+        let numbers = vec![0b1, 0b11, 0b111111, 0b11];
+        assert_eq!(max_bits_length(&numbers), 6)
     }
 }
