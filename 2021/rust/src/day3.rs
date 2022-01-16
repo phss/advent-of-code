@@ -26,23 +26,28 @@ fn max_bits_length(numbers: &Vec<u32>) -> u32 {
 }
 
 fn most_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
-    let half_numbers: u32 = numbers.len().try_into().unwrap();
+    let half_numbers: u32 = (numbers.len() / 2).try_into().unwrap();
     let mut ones = 0;
 
     for number in numbers.iter() {
         ones += number >> position & 1;
     }
-    (ones > (half_numbers / 2)) as u32
+
+    if ones == half_numbers {
+        1
+    } else {
+        (ones > half_numbers) as u32
+    }
 }
 
 fn least_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
-    let half_numbers: u32 = numbers.len().try_into().unwrap();
+    let half_numbers: u32 = (numbers.len() / 2).try_into().unwrap();
     let mut ones = 0;
 
     for number in numbers.iter() {
         ones += number >> position & 1;
     }
-    (ones < (half_numbers / 2)) as u32
+    (ones < half_numbers) as u32
 }
 
 fn power_consumption(diagnostic_report: Vec<u32>) -> u32 {
@@ -101,8 +106,20 @@ mod tests {
     }
 
     #[test]
+    fn most_common_bit_when_equally_common() {
+        let numbers = vec![0b00, 0b11, 0b01, 0b11];
+        assert_eq!(most_common_bit_at(1, &numbers), 1)
+    }
+
+    #[test]
     fn least_common_bit() {
         let numbers = vec![0b00, 0b11, 0b01, 0b11];
         assert_eq!(least_common_bit_at(0, &numbers), 0)
+    }
+
+    #[test]
+    fn least_common_bit_when_equally_common() {
+        let numbers = vec![0b00, 0b11, 0b01, 0b11];
+        assert_eq!(least_common_bit_at(1, &numbers), 0)
     }
 }
