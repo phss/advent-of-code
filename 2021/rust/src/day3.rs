@@ -1,55 +1,96 @@
 use crate::parser;
 
-fn to_number(binary_string: &String) -> u32 {
-    let number = isize::from_str_radix(binary_string, 2).unwrap();
-    number.try_into().unwrap()
+mod binary {
+    pub fn to_number(binary_string: &String) -> u32 {
+        let number = isize::from_str_radix(binary_string, 2).unwrap();
+        number.try_into().unwrap()
+    }
+
+    pub fn max_bits_length(numbers: &Vec<u32>) -> u32 {
+        numbers
+            .iter()
+            .map(|number| 32 - number.leading_zeros())
+            .max()
+            .unwrap()
+    }
+
+    pub fn most_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
+        comparison_bit_at(position, PartialOrd::ge, numbers)
+    }
+
+    pub fn least_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
+        comparison_bit_at(position, PartialOrd::lt, numbers)
+    }
+
+    fn comparison_bit_at(
+        position: u32,
+        comparison: fn(&u32, &u32) -> bool,
+        numbers: &Vec<u32>,
+    ) -> u32 {
+        let half_numbers: u32 = (numbers.len() / 2).try_into().unwrap();
+        let mut ones = 0;
+
+        for number in numbers.iter() {
+            ones += number >> position & 1;
+        }
+        comparison(&ones, &half_numbers) as u32
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn max_length() {
+            let numbers = vec![0b1, 0b11, 0b111111, 0b11];
+            assert_eq!(max_bits_length(&numbers), 6)
+        }
+
+        #[test]
+        fn most_common_bit() {
+            let numbers = vec![0b00, 0b11, 0b01, 0b11];
+            assert_eq!(most_common_bit_at(0, &numbers), 1)
+        }
+
+        #[test]
+        fn most_common_bit_when_equally_common() {
+            let numbers = vec![0b00, 0b11, 0b01, 0b11];
+            assert_eq!(most_common_bit_at(1, &numbers), 1)
+        }
+
+        #[test]
+        fn least_common_bit() {
+            let numbers = vec![0b00, 0b11, 0b01, 0b11];
+            assert_eq!(least_common_bit_at(0, &numbers), 0)
+        }
+
+        #[test]
+        fn least_common_bit_when_equally_common() {
+            let numbers = vec![0b00, 0b11, 0b01, 0b11];
+            assert_eq!(least_common_bit_at(1, &numbers), 0)
+        }
+    }
 }
 
 pub fn part1() -> u32 {
     let lines: Vec<String> = parser::read("data/day3.txt").unwrap();
-    let diagnostic_report = lines.iter().map(to_number).collect();
+    let diagnostic_report = lines.iter().map(binary::to_number).collect();
     power_consumption(diagnostic_report)
 }
 
 pub fn part2() -> u32 {
     let lines: Vec<String> = parser::read("data/day3.txt").unwrap();
-    let diagnostic_report = lines.iter().map(to_number).collect();
+    let diagnostic_report = lines.iter().map(binary::to_number).collect();
     life_support_rating(diagnostic_report)
-}
-
-fn max_bits_length(numbers: &Vec<u32>) -> u32 {
-    numbers
-        .iter()
-        .map(|number| 32 - number.leading_zeros())
-        .max()
-        .unwrap()
-}
-
-fn comparison_bit_at(position: u32, comparison: fn(&u32, &u32) -> bool, numbers: &Vec<u32>) -> u32 {
-    let half_numbers: u32 = (numbers.len() / 2).try_into().unwrap();
-    let mut ones = 0;
-
-    for number in numbers.iter() {
-        ones += number >> position & 1;
-    }
-    comparison(&ones, &half_numbers) as u32
-}
-
-fn most_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
-    comparison_bit_at(position, PartialOrd::ge, numbers)
-}
-
-fn least_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
-    comparison_bit_at(position, PartialOrd::lt, numbers)
 }
 
 fn power_consumption(diagnostic_report: Vec<u32>) -> u32 {
     let mut gamma_rate: u32 = 0;
     let mut epsilon_rate: u32 = 0;
 
-    for position in 0..max_bits_length(&diagnostic_report) {
-        let most_common = most_common_bit_at(position, &diagnostic_report);
-        let least_common = least_common_bit_at(position, &diagnostic_report);
+    for position in 0..binary::max_bits_length(&diagnostic_report) {
+        let most_common = binary::most_common_bit_at(position, &diagnostic_report);
+        let least_common = binary::least_common_bit_at(position, &diagnostic_report);
 
         gamma_rate += most_common << position;
         epsilon_rate += least_common << position;
@@ -85,34 +126,4 @@ mod tests {
 
     //     assert_eq!(life_support_rating(diagnostic_report), 230);
     // }
-
-    #[test]
-    fn max_length() {
-        let numbers = vec![0b1, 0b11, 0b111111, 0b11];
-        assert_eq!(max_bits_length(&numbers), 6)
-    }
-
-    #[test]
-    fn most_common_bit() {
-        let numbers = vec![0b00, 0b11, 0b01, 0b11];
-        assert_eq!(most_common_bit_at(0, &numbers), 1)
-    }
-
-    #[test]
-    fn most_common_bit_when_equally_common() {
-        let numbers = vec![0b00, 0b11, 0b01, 0b11];
-        assert_eq!(most_common_bit_at(1, &numbers), 1)
-    }
-
-    #[test]
-    fn least_common_bit() {
-        let numbers = vec![0b00, 0b11, 0b01, 0b11];
-        assert_eq!(least_common_bit_at(0, &numbers), 0)
-    }
-
-    #[test]
-    fn least_common_bit_when_equally_common() {
-        let numbers = vec![0b00, 0b11, 0b01, 0b11];
-        assert_eq!(least_common_bit_at(1, &numbers), 0)
-    }
 }
