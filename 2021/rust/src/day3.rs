@@ -25,29 +25,22 @@ fn max_bits_length(numbers: &Vec<u32>) -> u32 {
         .unwrap()
 }
 
-fn most_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
+fn comparison_bit_at(position: u32, comparison: fn(&u32, &u32) -> bool, numbers: &Vec<u32>) -> u32 {
     let half_numbers: u32 = (numbers.len() / 2).try_into().unwrap();
     let mut ones = 0;
 
     for number in numbers.iter() {
         ones += number >> position & 1;
     }
+    comparison(&ones, &half_numbers) as u32
+}
 
-    if ones == half_numbers {
-        1
-    } else {
-        (ones > half_numbers) as u32
-    }
+fn most_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
+    comparison_bit_at(position, PartialOrd::ge, numbers)
 }
 
 fn least_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
-    let half_numbers: u32 = (numbers.len() / 2).try_into().unwrap();
-    let mut ones = 0;
-
-    for number in numbers.iter() {
-        ones += number >> position & 1;
-    }
-    (ones < half_numbers) as u32
+    comparison_bit_at(position, PartialOrd::lt, numbers)
 }
 
 fn power_consumption(diagnostic_report: Vec<u32>) -> u32 {
