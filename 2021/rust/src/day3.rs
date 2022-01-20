@@ -27,7 +27,10 @@ mod binary {
         comparison: fn(&u32, &u32) -> bool,
         numbers: &Vec<u32>,
     ) -> u32 {
-        let half_numbers: u32 = (numbers.len() / 2).try_into().unwrap();
+        let mut half_numbers: u32 = (numbers.len() / 2).try_into().unwrap();
+        if numbers.len() % 2 == 1 {
+            half_numbers += 1;
+        }
         let mut ones = 0;
 
         for number in numbers.iter() {
@@ -59,9 +62,21 @@ mod binary {
         }
 
         #[test]
+        fn most_common_with_odd_sized_list() {
+            let numbers = vec![0b00, 0b10, 0b01, 0b11, 0b00];
+            assert_eq!(most_common_bit_at(0, &numbers), 0)
+        }
+
+        #[test]
         fn least_common_bit() {
             let numbers = vec![0b00, 0b11, 0b01, 0b11];
             assert_eq!(least_common_bit_at(0, &numbers), 0)
+        }
+
+        #[test]
+        fn least_common_bit_with_odd_sized_list() {
+            let numbers = vec![0b00, 0b10, 0b01, 0b11, 0b00];
+            assert_eq!(least_common_bit_at(0, &numbers), 1)
         }
 
         #[test]
@@ -100,7 +115,18 @@ fn power_consumption(diagnostic_report: Vec<u32>) -> u32 {
 }
 
 fn life_support_rating(diagnostic_report: Vec<u32>) -> u32 {
-    0
+    let mut temp_report = diagnostic_report;
+    for position in (0..binary::max_bits_length(&temp_report)).rev() {
+        let most_common = binary::most_common_bit_at(position, &temp_report.clone());
+        temp_report = temp_report
+            .into_iter()
+            .filter(|&number| {
+                let bit = number >> position & 1;
+                bit == most_common
+            })
+            .collect();
+    }
+    *temp_report.first().unwrap()
 }
 
 #[cfg(test)]
@@ -117,13 +143,13 @@ mod tests {
         assert_eq!(power_consumption(diagnostic_report), 198);
     }
 
-    // #[test]
-    // fn sample_input_life_support_rating() {
-    //     let diagnostic_report: Vec<u32> = vec![
-    //         0b00100, 0b11110, 0b10110, 0b10111, 0b10101, 0b01111, 0b00111, 0b11100, 0b10000,
-    //         0b11001, 0b00010, 0b01010,
-    //     ];
+    #[test]
+    fn sample_input_life_support_rating() {
+        let diagnostic_report: Vec<u32> = vec![
+            0b00100, 0b11110, 0b10110, 0b10111, 0b10101, 0b01111, 0b00111, 0b11100, 0b10000,
+            0b11001, 0b00010, 0b01010,
+        ];
 
-    //     assert_eq!(life_support_rating(diagnostic_report), 230);
-    // }
+        assert_eq!(life_support_rating(diagnostic_report), 230);
+    }
 }
