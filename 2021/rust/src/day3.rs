@@ -114,36 +114,29 @@ fn power_consumption(diagnostic_report: Vec<u32>) -> u32 {
     gamma_rate * epsilon_rate
 }
 
-fn life_support_rating(diagnostic_report: Vec<u32>) -> u32 {
-    let mut temp_report = diagnostic_report.clone();
+fn calculate_rating(selection: fn(u32, &Vec<u32>) -> u32, diagnostic_report: Vec<u32>) -> u32 {
+    let mut temp_report = diagnostic_report;
     for position in (0..binary::max_bits_length(&temp_report)).rev() {
-        let most_common = binary::most_common_bit_at(position, &temp_report.clone());
+        let selected_bit = selection(position, &temp_report.clone());
         temp_report = temp_report
             .into_iter()
             .filter(|&number| {
                 let bit = number >> position & 1;
-                bit == most_common
-            })
-            .collect();
-    }
-    let oxygen_generator_rating = *temp_report.first().unwrap();
-
-    let mut temp_report = diagnostic_report.clone();
-    for position in (0..binary::max_bits_length(&temp_report)).rev() {
-        let most_common = binary::least_common_bit_at(position, &temp_report.clone());
-        temp_report = temp_report
-            .into_iter()
-            .filter(|&number| {
-                let bit = number >> position & 1;
-                bit == most_common
+                bit == selected_bit
             })
             .collect();
         if temp_report.len() == 1 {
             break;
         }
     }
-    let co2_scrubber_rating = *temp_report.first().unwrap();
+    *temp_report.first().unwrap()
+}
 
+fn life_support_rating(diagnostic_report: Vec<u32>) -> u32 {
+    let oxygen_generator_rating =
+        calculate_rating(binary::most_common_bit_at, diagnostic_report.clone());
+    let co2_scrubber_rating =
+        calculate_rating(binary::least_common_bit_at, diagnostic_report.clone());
     oxygen_generator_rating * co2_scrubber_rating
 }
 
