@@ -114,22 +114,16 @@ fn power_consumption(diagnostic_report: Vec<u32>) -> u32 {
     gamma_rate * epsilon_rate
 }
 
-fn calculate_rating(selection: fn(u32, &Vec<u32>) -> u32, diagnostic_report: Vec<u32>) -> u32 {
-    let mut temp_report = diagnostic_report;
-    for position in (0..binary::max_bits_length(&temp_report)).rev() {
-        let selected_bit = selection(position, &temp_report.clone());
-        temp_report = temp_report
-            .into_iter()
-            .filter(|&number| {
-                let bit = number >> position & 1;
-                bit == selected_bit
-            })
-            .collect();
-        if temp_report.len() == 1 {
+fn calculate_rating(select_bit: fn(u32, &Vec<u32>) -> u32, diagnostic_report: Vec<u32>) -> u32 {
+    let mut remaining_numbers = diagnostic_report;
+    for position in (0..binary::max_bits_length(&remaining_numbers)).rev() {
+        let selected_bit = select_bit(position, &remaining_numbers.clone());
+        remaining_numbers.retain(|&number| (number >> position & 1) == selected_bit);
+        if remaining_numbers.len() == 1 {
             break;
         }
     }
-    *temp_report.first().unwrap()
+    *remaining_numbers.first().unwrap()
 }
 
 fn life_support_rating(diagnostic_report: Vec<u32>) -> u32 {
