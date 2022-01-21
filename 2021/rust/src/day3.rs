@@ -1,5 +1,7 @@
 use crate::parser;
 
+use self::binary::bit_at;
+
 mod binary {
     pub fn to_number(binary_string: &String) -> u32 {
         let number = isize::from_str_radix(binary_string, 2).unwrap();
@@ -12,6 +14,10 @@ mod binary {
             .map(|number| 32 - number.leading_zeros())
             .max()
             .unwrap()
+    }
+
+    pub fn bit_at(position: u32, number: &u32) -> u32 {
+        number >> position & 1
     }
 
     pub fn most_common_bit_at(position: u32, numbers: &Vec<u32>) -> u32 {
@@ -34,7 +40,7 @@ mod binary {
         let mut ones = 0;
 
         for number in numbers.iter() {
-            ones += number >> position & 1;
+            ones += bit_at(position, number);
         }
         comparison(&ones, &half_numbers) as u32
     }
@@ -118,7 +124,7 @@ fn calculate_rating(select_bit: fn(u32, &Vec<u32>) -> u32, diagnostic_report: Ve
     let mut remaining_numbers = diagnostic_report;
     for position in (0..binary::max_bits_length(&remaining_numbers)).rev() {
         let selected_bit = select_bit(position, &remaining_numbers.clone());
-        remaining_numbers.retain(|&number| (number >> position & 1) == selected_bit);
+        remaining_numbers.retain(|number| bit_at(position, number) == selected_bit);
         if remaining_numbers.len() == 1 {
             break;
         }
