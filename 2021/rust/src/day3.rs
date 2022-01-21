@@ -115,7 +115,7 @@ fn power_consumption(diagnostic_report: Vec<u32>) -> u32 {
 }
 
 fn life_support_rating(diagnostic_report: Vec<u32>) -> u32 {
-    let mut temp_report = diagnostic_report;
+    let mut temp_report = diagnostic_report.clone();
     for position in (0..binary::max_bits_length(&temp_report)).rev() {
         let most_common = binary::most_common_bit_at(position, &temp_report.clone());
         temp_report = temp_report
@@ -126,7 +126,25 @@ fn life_support_rating(diagnostic_report: Vec<u32>) -> u32 {
             })
             .collect();
     }
-    *temp_report.first().unwrap()
+    let oxygen_generator_rating = *temp_report.first().unwrap();
+
+    let mut temp_report = diagnostic_report.clone();
+    for position in (0..binary::max_bits_length(&temp_report)).rev() {
+        let most_common = binary::least_common_bit_at(position, &temp_report.clone());
+        temp_report = temp_report
+            .into_iter()
+            .filter(|&number| {
+                let bit = number >> position & 1;
+                bit == most_common
+            })
+            .collect();
+        if temp_report.len() == 1 {
+            break;
+        }
+    }
+    let co2_scrubber_rating = *temp_report.first().unwrap();
+
+    oxygen_generator_rating * co2_scrubber_rating
 }
 
 #[cfg(test)]
