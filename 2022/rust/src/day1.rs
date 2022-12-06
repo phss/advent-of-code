@@ -1,29 +1,23 @@
 use crate::parser;
 
 pub fn part1() -> u32 {
-    let measurements = parser::read("data/day1.txt").unwrap();
-    calculate_increases(measurements)
+    let lines: Vec<String> = parser::read("data/day1.txt").unwrap();
+    let food_calories = to_food_calories_per_elf(&lines);
+    max_carried_calories(&food_calories)
 }
 
-pub fn part2() -> u32 {
-    let mut measurements = parser::read("data/day1.txt").unwrap();
-    measurements = sliding_windows_sums(&measurements);
-    calculate_increases(measurements)
-}
-
-fn sliding_windows_sums(measurements: &Vec<u32>) -> Vec<u32> {
-    measurements
-        .windows(3)
-        .map(|window| window.iter().sum())
+fn to_food_calories_per_elf(lines: &Vec<String>) -> Vec<Vec<u32>> {
+    lines
+        .split(|line| line.is_empty())
+        .map(|lines| lines.iter().map(|s| s.parse().unwrap()).collect() )
         .collect()
 }
 
-fn calculate_increases(measurements: Vec<u32>) -> u32 {
-    measurements
-        .windows(2)
-        .filter(|pair| matches!(pair, [a, b] if b > a))
-        .count()
-        .try_into()
+fn max_carried_calories(food_calories: &Vec<Vec<u32>>) -> u32 {
+    food_calories
+        .iter()
+        .map(|calories| calories.iter().sum())
+        .max()
         .unwrap()
 }
 
@@ -33,28 +27,14 @@ mod tests {
 
     #[test]
     fn increases_in_sample_input() {
-        let measurements = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
-        assert_eq!(calculate_increases(measurements), 7);
+        let food_calories = vec![
+            vec![1000, 2000, 3000],
+            vec![4000],
+            vec![5000, 6000],
+            vec![7000, 8000, 9000],
+            vec![10000]
+        ];
+        assert_eq!(max_carried_calories(&food_calories), 24000);
     }
 
-    #[test]
-    fn only_increases() {
-        let measurements = vec![1, 2, 3];
-        assert_eq!(calculate_increases(measurements), 2);
-    }
-
-    #[test]
-    fn no_increases() {
-        let measurements = vec![3, 2, 1];
-        assert_eq!(calculate_increases(measurements), 0);
-    }
-
-    #[test]
-    fn sliding_windows_measurements() {
-        let measurements = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
-        assert_eq!(
-            sliding_windows_sums(&measurements),
-            vec![607, 618, 618, 617, 647, 716, 769, 792]
-        );
-    }
 }
