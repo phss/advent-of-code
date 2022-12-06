@@ -1,4 +1,4 @@
-use advent_of_code::{day1, day2, day3};
+use advent_of_code::{day1, day2, day3, day4};
 use std::env;
 
 fn parse_command_line_args() -> (u32, u32) {
@@ -22,6 +22,8 @@ fn run(day: u32, part: u32) -> u32 {
         (2, 2) => day2::part2,
         (3, 1) => day3::part1,
         (3, 2) => day3::part2,
+        (4, 1) => day4::part1,
+        (4, 2) => day4::part2,
         _ => panic!("No solution yet for day {} and part {}", day, part),
     };
     solution()
