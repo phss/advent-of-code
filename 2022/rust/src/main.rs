@@ -19,6 +19,7 @@ fn run(day: u32, part: u32) -> u32 {
         (1, 1) => day1::part1,
         (1, 2) => day1::part2,
         (2, 1) => day2::part1,
+        (2, 2) => day2::part2,
         _ => panic!("No solution yet for day {} and part {}", day, part),
     };
     solution()
