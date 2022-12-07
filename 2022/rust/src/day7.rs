@@ -14,6 +14,39 @@ enum DirTree {
     },
 }
 
+impl DirTree {
+    pub fn parse(command_results: Vec<String>) -> DirTree {
+        let mut command_results = command_results.iter();
+        command_results.next(); // skip the first $ cd /
+        Self::parse_in_dir("/".to_string(), &mut command_results)
+    }
+    
+    fn parse_in_dir(name: String, command_results: &mut Iter<String>) -> DirTree {
+        let mut children: Vec<DirTree> = vec![];
+    
+        while let Some(line) = command_results.next() {
+            let parts: Vec<&str> = line.split_ascii_whitespace().collect();
+    
+            match parts[..] {
+                ["$", "ls"] | ["dir", _] => {}
+                ["$", "cd", ".."] => {
+                    break;
+                }
+                ["$", "cd", name] => {
+                    children.push(Self::parse_in_dir(name.to_string(), command_results));
+                }
+                [size, name] => children.push(DirTree::File {
+                    name: name.to_string(),
+                    size: size.parse().unwrap(),
+                }),
+                _ => println!("unreachable"),
+            }
+        }
+    
+        DirTree::Dir { name, children }
+    }
+}
+
 #[derive(Clone, Debug)]
 struct DirSizes {
     size: u32,
@@ -87,35 +120,6 @@ fn parse_to_dir_sizes(command_results: &Vec<String>) -> Vec<DirSizes> {
     dirs.values().cloned().collect()
 }
 
-fn parse(command_results: &mut Iter<String>) -> DirTree {
-    command_results.next(); // skip the first $ cd /
-    parse_in_dir("/".to_string(), command_results)
-}
-
-fn parse_in_dir(name: String, command_results: &mut Iter<String>) -> DirTree {
-    let mut children: Vec<DirTree> = vec![];
-
-    while let Some(line) = command_results.next() {
-        let parts: Vec<&str> = line.split_ascii_whitespace().collect();
-
-        match parts[..] {
-            ["$", "ls"] | ["dir", _] => {}
-            ["$", "cd", ".."] => {
-                break;
-            }
-            ["$", "cd", name] => {
-                children.push(parse_in_dir(name.to_string(), command_results));
-            }
-            [size, name] => children.push(DirTree::File {
-                name: name.to_string(),
-                size: size.parse().unwrap(),
-            }),
-            _ => println!("unreachable"),
-        }
-    }
-
-    DirTree::Dir { name, children }
-}
 
 #[cfg(test)]
 mod tests {
@@ -148,11 +152,11 @@ mod tests {
             "5626152 d.ext",
             "7214296 k",
         ];
-        let mut command_results: Vec<String> =
+        let command_results: Vec<String> =
             command_results.into_iter().map(|s| s.to_string()).collect();
 
         assert_eq!(
-            parse(&mut command_results.iter()),
+            DirTree::parse(command_results),
             DirTree::Dir {
                 name: "/".to_string(),
                 children: vec![
