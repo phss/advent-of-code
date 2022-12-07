@@ -3,9 +3,8 @@ use std::collections::HashMap;
 use crate::parser;
 
 
-#[derive(Clone)]
-struct DirSizes<'a> {
-    name: &'a str,
+#[derive(Clone, Debug)]
+struct DirSizes {
     size: u32,
 }
 
@@ -20,15 +19,16 @@ pub fn part2() -> u32 {
 
 fn sub_10000_dir_sizes(command_results: &Vec<String>) -> u32 {
     let dirs: Vec<DirSizes> = parse_to_dir_sizes(command_results);
+    println!("{:?}", dirs);
     dirs.into_iter()
         .filter(|dir| dir.size <= 100000)
         .map(|dir| dir.size)
         .sum()
 }
 
-fn parse_to_dir_sizes<'a>(command_results: &'a Vec<String>) -> Vec<DirSizes<'a>> {
-    let mut dirs: HashMap<&str, DirSizes> = HashMap::new();
-    let mut current_branch: Vec<&str> = vec![];
+fn parse_to_dir_sizes(command_results: &Vec<String>) -> Vec<DirSizes> {
+    let mut dirs: HashMap<String, DirSizes> = HashMap::new();
+    let mut current_branch: Vec<String> = vec![];
 
     for line in command_results {
         let parts: Vec<&str> = line.split_ascii_whitespace().collect();
@@ -38,14 +38,16 @@ fn parse_to_dir_sizes<'a>(command_results: &'a Vec<String>) -> Vec<DirSizes<'a>>
             ["$", "cd", ".."] => {
                 current_branch.pop();
             }
-            ["$", "cd", name] => {
-                dirs.insert(name, DirSizes { name, size: 0 });
-                current_branch.push(name);
+            ["$", "cd", dir] => {
+                let path = if let Some(path) = current_branch.last() { path } else { "" };
+                let dir_path = format!("{}/{}", path, dir);
+                current_branch.push(format!("{}/{}", path, dir));
+                dirs.insert(dir_path, DirSizes { size: 0 });
             },
             [size, _] => {
                 let size: u32 = size.parse().unwrap();
-                for dir_name in current_branch.iter().cloned() {
-                    dirs.get_mut(&dir_name).unwrap().size += size;
+                for dir_path in current_branch.iter().cloned() {
+                    dirs.get_mut(&dir_path).unwrap().size += size;
                 }
             },
             _ => println!("unreachable"),
