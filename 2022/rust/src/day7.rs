@@ -15,18 +15,25 @@ enum DirTree {
 }
 
 impl DirTree {
+    pub fn size(self: Self) -> u32 {
+        match self {
+            DirTree::File { name: _, size } => size,
+            DirTree::Dir { name: _, children } => children.into_iter().map(DirTree::size).sum(),
+        }
+    }
+
     pub fn parse(command_results: Vec<String>) -> DirTree {
         let mut command_results = command_results.iter();
         command_results.next(); // skip the first $ cd /
         Self::parse_in_dir("/".to_string(), &mut command_results)
     }
-    
+
     fn parse_in_dir(name: String, command_results: &mut Iter<String>) -> DirTree {
         let mut children: Vec<DirTree> = vec![];
-    
+
         while let Some(line) = command_results.next() {
             let parts: Vec<&str> = line.split_ascii_whitespace().collect();
-    
+
             match parts[..] {
                 ["$", "ls"] | ["dir", _] => {}
                 ["$", "cd", ".."] => {
@@ -42,7 +49,7 @@ impl DirTree {
                 _ => println!("unreachable"),
             }
         }
-    
+
         DirTree::Dir { name, children }
     }
 }
@@ -119,7 +126,6 @@ fn parse_to_dir_sizes(command_results: &Vec<String>) -> Vec<DirSizes> {
 
     dirs.values().cloned().collect()
 }
-
 
 #[cfg(test)]
 mod tests {
