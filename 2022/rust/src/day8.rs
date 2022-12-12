@@ -9,7 +9,9 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
-    0
+    let lines: Vec<String> = parser::read("data/day8.txt").unwrap();
+    let tree_heights: Vec<Vec<u32>> = to_height_map(&lines);
+    highest_scenic_score(&tree_heights)
 }
 
 fn to_height_map(lines: &Vec<String>) -> Vec<Vec<u32>> {
@@ -53,8 +55,49 @@ where
         .all(|tree_height| tree_height < current_height)
 }
 
-fn highest_scenic_score(tree_heights: &Vec<Vec<i32>>) -> u32 {
-    0
+fn highest_scenic_score(tree_heights: &Vec<Vec<u32>>) -> u32 {
+    let width = tree_heights[0].len();
+    let height = tree_heights.len();
+    let mut max_scenic_score = 0;
+
+    for y in 0..height {
+        for x in 0..width {
+            let tree_height = tree_heights[y][x];
+            let left = scenic_score_in_dir(tree_heights, (0..x).rev().zip(repeat(y)), tree_height, x);
+            let right = scenic_score_in_dir(tree_heights, (x + 1..width).zip(repeat(y)), tree_height, width-x-1);
+            let up = scenic_score_in_dir(tree_heights, repeat(x).zip((0..y).rev()), tree_height, y);
+            let down = scenic_score_in_dir(tree_heights, repeat(x).zip(y + 1..height), tree_height, height-y-1);
+
+            let scenic_score = left * right * up * down;
+
+            if scenic_score > max_scenic_score {
+                max_scenic_score = scenic_score;
+            }
+        }
+    }
+
+    max_scenic_score as u32
+}
+
+fn scenic_score_in_dir<I>(
+    tree_heights: &Vec<Vec<u32>>,
+    tree_coords_in_direction: I,
+    current_height: u32,
+    default: usize
+) -> usize
+where
+    I: Iterator<Item = (usize, usize)>,
+{
+    let first_blocking_tree = tree_coords_in_direction
+        .enumerate()
+        .map(|(i, (x, y))| (i, tree_heights[y][x]))
+        .find(|(_, tree_height)| tree_height >= &current_height)
+        .map(|(i, _)| i + 1);
+
+    match first_blocking_tree {
+        Some(i) => i,
+        None => default,
+    }
 }
 
 #[cfg(test)]
