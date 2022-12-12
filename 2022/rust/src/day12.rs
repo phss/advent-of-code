@@ -5,8 +5,7 @@ use std::{
 
 use crate::parser;
 
-#[derive(Eq, Hash, PartialEq, Debug)]
-struct Position(usize, usize);
+type Position = (usize, usize);
 
 struct Problem {
     start: Position,
@@ -16,15 +15,15 @@ struct Problem {
 
 impl Problem {
     fn parse(lines: &Vec<String>) -> Self {
-        let mut start = Position(0, 0);
-        let mut end = Position(0, 0);
+        let mut start = (0, 0);
+        let mut end = (0, 0);
 
         for y in 0..lines.len() {
             for (x, c) in lines[y].chars().enumerate() {
                 if c == 'S' {
-                    start = Position(x, y);
+                    start = (x, y);
                 } else if c == 'E' {
-                    end = Position(x, y);
+                    end = (x, y);
                 }
             }
         }
@@ -53,7 +52,9 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
-    0
+    let lines: Vec<String> = parser::read("data/day12.txt").unwrap();
+    let problem = Problem::parse(&lines);
+    fewest_steps_from_base(problem)
 }
 
 fn fewest_steps(problem: Problem) -> u32 {
@@ -67,10 +68,14 @@ fn fewest_steps(problem: Problem) -> u32 {
     considered.insert(Rc::clone(&start));
 
     loop {
+        if next_positions.len() == 0 {
+            return 1000000; // TODO fix this mega hardcoded break condition
+        }
+
         let (position_rc, steps) = next_positions.pop_front().unwrap();
         let x = position_rc.0;
         let y = position_rc.1;
-        if Position(x, y) == problem.end {
+        if (x, y) == problem.end {
             return steps;
         }
 
@@ -81,7 +86,7 @@ fn fewest_steps(problem: Problem) -> u32 {
             (x, (y + 1).min(height - 1)),
         ];
         for (cx, cy) in candidates {
-            let candidate_position = Rc::new(Position(cx, cy));
+            let candidate_position = Rc::new((cx, cy));
 
             let valid_step = (0..=problem.map[y][x] + 1).contains(&problem.map[cy][cx]);
             let not_seen = !considered.contains(&candidate_position);
@@ -94,6 +99,34 @@ fn fewest_steps(problem: Problem) -> u32 {
     }
 }
 
+fn fewest_steps_from_base(problem: Problem) -> u32 {
+    find_starts(&problem)
+        .iter()
+        .map(|(x, y)| {
+            fewest_steps(Problem {
+                start: (*x, *y),
+                end: problem.end,
+                map: problem.map.clone(),
+            })
+        })
+        .min()
+        .unwrap()
+}
+
+fn find_starts(problem: &Problem) -> Vec<Position> {
+    let mut starts = vec![];
+
+    for y in 0..problem.map.len() {
+        for (x, &c) in problem.map[y].iter().enumerate() {
+            if c == 'a' as u32 {
+                starts.push((x, y));
+            }
+        }
+    }
+
+    starts
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -102,8 +135,8 @@ mod tests {
     fn parse() {
         let lines = vec![String::from("Sacde"), String::from("fghiE")];
         let problem = Problem::parse(&lines);
-        assert_eq!(problem.start, Position(0, 0));
-        assert_eq!(problem.end, Position(4, 1));
+        assert_eq!(problem.start, (0, 0));
+        assert_eq!(problem.end, (4, 1));
         assert_eq!(
             problem.map,
             vec![vec![97, 97, 99, 100, 101], vec![102, 103, 104, 105, 122]]
@@ -124,5 +157,15 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            String::from("Sabqponm"),
+            String::from("abcryxxl"),
+            String::from("accszExk"),
+            String::from("acctuvwj"),
+            String::from("abdefghi"),
+        ];
+        let problem = Problem::parse(&lines);
+        assert_eq!(fewest_steps_from_base(problem), 29);
+    }
 }
