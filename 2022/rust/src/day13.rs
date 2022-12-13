@@ -1,8 +1,8 @@
-use itertools::Itertools;
+use std::cmp::Ordering;
 
 use crate::parser;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, PartialOrd, Eq, Debug)]
 enum Packet {
     List(Vec<Packet>),
     Value(i32),
@@ -42,29 +42,55 @@ impl Packet {
     }
 }
 
-#[derive(PartialEq, Debug)]
-enum Comparison {
-    RightOrder,
-    WrongOrder,
-    Same,
+impl Ord for Packet {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (self, other) {
+            (Packet::List(left_values), Packet::List(right_values)) => left_values
+                .iter()
+                .zip(right_values.iter())
+                .find_map(|(left, right)| match left.cmp(right) {
+                    Ordering::Equal => None,
+                    result => Some(result),
+                })
+                .unwrap_or_else(|| {
+                    Packet::Value(left_values.len() as i32)
+                        .cmp(&Packet::Value(right_values.len() as i32))
+                }),
+            (Packet::List(_), Packet::Value(right_value)) => {
+                self.cmp(&Packet::List(vec![Packet::Value(*right_value)]))
+            }
+            (Packet::Value(left_value), Packet::List(_)) => {
+                Packet::List(vec![Packet::Value(*left_value)]).cmp(other)
+            }
+            (Packet::Value(left_value), Packet::Value(right_value)) => {
+                if left_value < right_value {
+                    Ordering::Less
+                } else if left_value > right_value {
+                    Ordering::Greater
+                } else {
+                    Ordering::Equal
+                }
+            }
+        }
+    }
 }
 
 pub fn part1() -> u32 {
     let lines: Vec<String> = parser::read("data/day13.txt").unwrap();
-    let result: Vec<(usize, Comparison)> = lines
+    let result: Vec<(usize, Ordering)> = lines
         .split(|line| line.is_empty())
         .map(|pair| {
             let mut pair_iter = pair.iter();
             let left = pair_iter.next().unwrap();
             let right = pair_iter.next().unwrap();
-            compare(&Packet::parse(left), &Packet::parse(right))
+            Packet::parse(left).cmp(&Packet::parse(right))
         })
         .enumerate()
         .collect();
 
     result
         .iter()
-        .filter(|(_, result)| result == &Comparison::RightOrder)
+        .filter(|(_, result)| result == &Ordering::Less)
         .map(|(i, _)| i + 1)
         .sum::<usize>() as u32
 }
@@ -73,44 +99,10 @@ pub fn part2() -> u32 {
     0
 }
 
-fn compare(left: &Packet, right: &Packet) -> Comparison {
-    // println!("{:?}", left);
-    // println!("{:?}", right);
-    // println!("");
-    match (left, right) {
-        (Packet::List(left_values), Packet::List(right_values)) => left_values
-            .iter()
-            .zip(right_values.iter())
-            .find_map(|(left, right)| match compare(left, right) {
-                Comparison::Same => None,
-                result => Some(result),
-            })
-            .unwrap_or_else(|| {
-                compare(
-                    &Packet::Value(left_values.len() as i32),
-                    &Packet::Value(right_values.len() as i32),
-                )
-            }),
-        (Packet::List(_), Packet::Value(right_value)) => {
-            compare(left, &Packet::List(vec![Packet::Value(*right_value)]))
-        }
-        (Packet::Value(left_value), Packet::List(_)) => {
-            compare(&Packet::List(vec![Packet::Value(*left_value)]), right)
-        }
-        (Packet::Value(left_value), Packet::Value(right_value)) => {
-            if left_value < right_value {
-                Comparison::RightOrder
-            } else if left_value > right_value {
-                Comparison::WrongOrder
-            } else {
-                Comparison::Same
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
+    use std::cmp::Ordering;
+
     use super::*;
 
     #[test]
@@ -132,42 +124,37 @@ mod tests {
     #[test]
     fn sample_input_part_1() {
         assert_eq!(
-            compare(&Packet::parse("[1,1,3,1,1]"), &Packet::parse("[1,1,5,1,1]")),
-            Comparison::RightOrder
+            Packet::parse("[1,1,3,1,1]").cmp(&Packet::parse("[1,1,5,1,1]")),
+            Ordering::Less
         );
         assert_eq!(
-            compare(&Packet::parse("[[1],[2,3,4]]"), &Packet::parse("[[1],4]")),
-            Comparison::RightOrder
+            Packet::parse("[[1],[2,3,4]]").cmp(&Packet::parse("[[1],4]")),
+            Ordering::Less
         );
         assert_eq!(
-            compare(&Packet::parse("[9]"), &Packet::parse("[[8,7,6]]")),
-            Comparison::WrongOrder
+            Packet::parse("[9]").cmp(&Packet::parse("[[8,7,6]]")),
+            Ordering::Greater
         );
         assert_eq!(
-            compare(
-                &Packet::parse("[[4,4],4,4]"),
-                &Packet::parse("[[4,4],4,4,4]")
-            ),
-            Comparison::RightOrder
+            Packet::parse("[[4,4],4,4]").cmp(&Packet::parse("[[4,4],4,4,4]")),
+            Ordering::Less
         );
         assert_eq!(
-            compare(&Packet::parse("[7,7,7,7]"), &Packet::parse("[7,7,7]")),
-            Comparison::WrongOrder
+            Packet::parse("[7,7,7,7]").cmp(&Packet::parse("[7,7,7]")),
+            Ordering::Greater
         );
         assert_eq!(
-            compare(&Packet::parse("[]"), &Packet::parse("[3]")),
-            Comparison::RightOrder
+            Packet::parse("[]").cmp(&Packet::parse("[3]")),
+            Ordering::Less
         );
         assert_eq!(
-            compare(&Packet::parse("[[[]]]"), &Packet::parse("[[]]")),
-            Comparison::WrongOrder
+            Packet::parse("[[[]]]").cmp(&Packet::parse("[[]]")),
+            Ordering::Greater
         );
         assert_eq!(
-            compare(
-                &Packet::parse("[1,[2,[3,[4,[5,6,7]]]],8,9]"),
-                &Packet::parse("[1,[2,[3,[4,[5,6,0]]]],8,9]")
-            ),
-            Comparison::WrongOrder
+            Packet::parse("[1,[2,[3,[4,[5,6,7]]]],8,9]")
+                .cmp(&Packet::parse("[1,[2,[3,[4,[5,6,0]]]],8,9]")),
+            Ordering::Greater
         );
     }
 
