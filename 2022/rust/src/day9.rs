@@ -2,6 +2,7 @@ use std::{collections::HashSet, str::FromStr};
 
 use crate::parser;
 
+#[derive(Debug)]
 enum Move {
     Right(i32),
     Left(i32),
@@ -32,20 +33,25 @@ impl FromStr for Move {
 
 pub fn part1() -> u32 {
     let moves: Vec<Move> = parser::read("data/day9.txt").unwrap();
-    visited_positions(&moves)
+    visited_positions(&moves, 1)
 }
 
 pub fn part2() -> u32 {
-    0
+    let moves: Vec<Move> = parser::read("data/day9.txt").unwrap();
+    visited_positions(&moves, 9)
 }
 
-fn visited_positions(moves: &Vec<Move>) -> u32 {
+fn visited_positions(moves: &Vec<Move>, rope_length: usize) -> u32 {
+    let mut rope: Vec<(i32, i32)> = vec![(0, 0)];
+    for _ in 0..rope_length {
+        rope.push((0, 0));
+    }
+
     let mut visited = HashSet::new();
-    let mut head: (i32, i32) = (0, 0);
-    let mut tail: (i32, i32) = (0, 0);
-    visited.insert(tail);
+    visited.insert(rope.last().unwrap().clone());
 
     for rope_move in moves {
+        println!("=== Move {:?} ===", rope_move);
         let ((x, y), steps) = match rope_move {
             Move::Right(distance) => ((1, 0), *distance),
             Move::Left(distance) => ((-1, 0), *distance),
@@ -54,24 +60,26 @@ fn visited_positions(moves: &Vec<Move>) -> u32 {
         };
 
         for _ in 0..steps {
-            head.0 += x;
-            head.1 += y;
+            rope[0].0 += x;
+            rope[0].1 += y;
 
-            if (head.0 - tail.0) > 1 {
-                tail.0 += 1;
-                tail.1 = head.1;
-            } else if (head.0 - tail.0) < -1 {
-                tail.0 -= 1;
-                tail.1 = head.1;
-            } else if (head.1 - tail.1) > 1 {
-                tail.0 = head.0;
-                tail.1 += 1;
-            } else if (head.1 - tail.1) < -1 {
-                tail.0 = head.0;
-                tail.1 -= 1;
+            for i in 1..rope.len() {
+                if (rope[i-1].0 - rope[i].0) > 1 {
+                    rope[i].0 += 1;
+                    rope[i].1 -= (rope[i].1 - rope[i-1].1).clamp(-1, 1);
+                } else if (rope[i-1].0 - rope[i].0) < -1 {
+                    rope[i].0 -= 1;
+                    rope[i].1 -= (rope[i].1 - rope[i-1].1).clamp(-1, 1);
+                } else if (rope[i-1].1 - rope[i].1) > 1 {
+                    rope[i].0 -= (rope[i].0 - rope[i-1].0).clamp(-1, 1);
+                    rope[i].1 += 1;
+                } else if (rope[i-1].1 - rope[i].1) < -1 {
+                    rope[i].0 -= (rope[i].0 - rope[i-1].0).clamp(-1, 1);
+                    rope[i].1 -= 1;
+                }
             }
 
-            visited.insert(tail);
+            visited.insert(rope.last().unwrap().clone());
         }
     }
 
@@ -94,9 +102,21 @@ mod tests {
             Move::Left(5),
             Move::Right(2),
         ];
-        assert_eq!(visited_positions(&moves), 13);
+        assert_eq!(visited_positions(&moves, 1), 13);
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let moves = vec![
+            Move::Right(5),
+            Move::Up(8),
+            Move::Left(8),
+            Move::Down(3),
+            Move::Right(17),
+            Move::Down(10),
+            Move::Left(25),
+            Move::Right(20),
+        ];
+        assert_eq!(visited_positions(&moves, 9), 25);
+    }
 }
