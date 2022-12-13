@@ -1,8 +1,10 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, fmt::Display};
+
+use itertools::Itertools;
 
 use crate::parser;
 
-#[derive(PartialEq, PartialOrd, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 enum Packet {
     List(Vec<Packet>),
     Value(i32),
@@ -42,6 +44,12 @@ impl Packet {
     }
 }
 
+impl PartialOrd for Packet {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 impl Ord for Packet {
     fn cmp(&self, other: &Self) -> Ordering {
         match (self, other) {
@@ -75,6 +83,20 @@ impl Ord for Packet {
     }
 }
 
+impl Display for Packet {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Packet::List(list_values) => {
+                let values_as_string = list_values.iter().map(|value| value.to_string()).join(",");
+                write!(f, "[{}]", values_as_string)
+            }
+            Packet::Value(value) => {
+                write!(f, "{}", value)
+            }
+        }
+    }
+}
+
 pub fn part1() -> u32 {
     let lines: Vec<String> = parser::read("data/day13.txt").unwrap();
     let result: Vec<(usize, Ordering)> = lines
@@ -96,7 +118,38 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
-    0
+    let lines: Vec<String> = parser::read("data/day13.txt").unwrap();
+    decoder_key(&lines)
+}
+
+fn decoder_key(lines: &Vec<String>) -> u32 {
+    let mut packets: Vec<Packet> = lines
+        .iter()
+        .filter(|line| !line.is_empty())
+        .map(|line| Packet::parse(line))
+        .collect();
+
+    let first_divider = Packet::parse("[[2]]");
+    let second_divider = Packet::parse("[[6]]");
+
+    packets.push(first_divider);
+    packets.push(second_divider);
+    packets.sort();
+
+    for packet in &packets {
+        println!("{}", packet);
+    }
+
+    let first_divider_index = 1 + packets
+        .iter()
+        .position(|packet| packet == &Packet::parse("[[2]]"))
+        .unwrap();
+    let second_divider_index = 1 + packets
+        .iter()
+        .position(|packet| packet == &Packet::parse("[[6]]"))
+        .unwrap();
+
+    (first_divider_index * second_divider_index) as u32
 }
 
 #[cfg(test)]
@@ -159,5 +212,40 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn troubleshooting() {
+        assert_eq!(
+            Packet::parse("[1,1,3,1,1]").cmp(&Packet::parse("[1,[2,[3,[4,[5,6,0]]]],8,9]")),
+            Ordering::Less
+        );   
+    }
+
+    #[test]
+    fn sample_input_part_2() {
+        let lines = vec![
+            String::from("[1,1,3,1,1]"),
+            String::from("[1,1,5,1,1]"),
+            String::from(""),
+            String::from("[[1],[2,3,4]]"),
+            String::from("[[1],4]"),
+            String::from(""),
+            String::from("[9]"),
+            String::from("[[8,7,6]]"),
+            String::from(""),
+            String::from("[[4,4],4,4]"),
+            String::from("[[4,4],4,4,4]"),
+            String::from(""),
+            String::from("[7,7,7,7]"),
+            String::from("[7,7,7]"),
+            String::from(""),
+            String::from("[]"),
+            String::from("[3]"),
+            String::from(""),
+            String::from("[[[]]]"),
+            String::from("[[]]"),
+            String::from(""),
+            String::from("[1,[2,[3,[4,[5,6,7]]]],8,9]"),
+            String::from("[1,[2,[3,[4,[5,6,0]]]],8,9]"),
+        ];
+        assert_eq!(decoder_key(&lines), 140)
+    }
 }
