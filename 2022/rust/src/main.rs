@@ -1,5 +1,5 @@
 use advent_of_code::{
-    day1, day10, day12, day13, day14, day2, day3, day4, day5, day6, day7, day8, day9,
+    day1, day10, day12, day13, day14, day2, day3, day4, day5, day6, day7, day8, day9, day11,
 };
 use std::env;
 
@@ -38,6 +38,8 @@ fn run(day: u32, part: u32) -> u32 {
         (9, 2) => day9::part2,
         (10, 1) => day10::part1,
         (10, 2) => day10::part2,
+        (11, 1) => day11::part1,
+        (11, 2) => day11::part2,
         (12, 1) => day12::part1,
         (12, 2) => day12::part2,
         (13, 1) => day13::part1,
