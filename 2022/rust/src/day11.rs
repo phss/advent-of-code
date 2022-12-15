@@ -1,7 +1,5 @@
 use std::collections::VecDeque;
 
-use crate::parser;
-
 #[derive(Debug, Clone)]
 struct Monkey {
     items_worry: VecDeque<u64>,
