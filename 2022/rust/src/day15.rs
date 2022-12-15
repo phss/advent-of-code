@@ -1,4 +1,4 @@
-use std::{str::FromStr, ops::RangeInclusive};
+use std::{ops::RangeInclusive, str::FromStr};
 
 use itertools::Itertools;
 
@@ -50,10 +50,19 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
-    0
+    let sensors: Vec<Sensor> = parser::read("data/day15.txt").unwrap();
+    tunning_frequency(&sensors, 4000000)
 }
 
 fn no_beacon_positions(sensors: &Vec<Sensor>, at_y: i32) -> u32 {
+    unique_ranges_at_y(sensors, at_y)
+        .into_iter()
+        .map(|range| range.count())
+        .sum::<usize>() as u32
+        - 1
+}
+
+fn unique_ranges_at_y(sensors: &Vec<Sensor>, at_y: i32) -> Vec<RangeInclusive<i32>> {
     let all_ranges_at_y: Vec<RangeInclusive<i32>> = sensors
         .iter()
         .filter(|sensor| {
@@ -67,17 +76,31 @@ fn no_beacon_positions(sensors: &Vec<Sensor>, at_y: i32) -> u32 {
         .sorted_by_key(|sensor| *sensor.start())
         .collect();
 
-    let mut covered_by_sensors = 0;
-    let mut last_x = all_ranges_at_y.first().unwrap().start();
-    for range in &all_ranges_at_y {
-        let begin_x = last_x.max(range.start());
-        let end_x = last_x.max(range.end());
+    all_ranges_at_y[1..]
+        .iter()
+        .fold(vec![all_ranges_at_y[0].clone()], |mut acc, range| {
+            let last_range = acc.last().unwrap();
+            if last_range.contains(range.start()) {
+                let last_range = *last_range.start()..=*range.end().max(last_range.end());
+                let last_index = acc.len() - 1;
+                acc[last_index] = last_range;
+                return acc;
+            } else {
+                acc.push(range.clone());
+            }
+            acc
+        })
+}
 
-        covered_by_sensors += end_x - begin_x;
-        last_x = end_x;
+fn tunning_frequency(sensors: &Vec<Sensor>, max: i32) -> u32 {
+    for y in 0..=max {
+        let ranges = unique_ranges_at_y(sensors, y);
+        if ranges.len() != 1 {
+            println!("{} {:?}", y, ranges);
+            // sadly doing the math by hand after getting the line
+        }
     }
-
-    covered_by_sensors as u32
+    0
 }
 
 #[cfg(test)]
@@ -122,5 +145,27 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let sensors: Vec<Sensor> = vec![
+            String::from("Sensor at x=2, y=18: closest beacon is at x=-2, y=15"),
+            String::from("Sensor at x=9, y=16: closest beacon is at x=10, y=16"),
+            String::from("Sensor at x=13, y=2: closest beacon is at x=15, y=3"),
+            String::from("Sensor at x=12, y=14: closest beacon is at x=10, y=16"),
+            String::from("Sensor at x=10, y=20: closest beacon is at x=10, y=16"),
+            String::from("Sensor at x=14, y=17: closest beacon is at x=10, y=16"),
+            String::from("Sensor at x=8, y=7: closest beacon is at x=2, y=10"),
+            String::from("Sensor at x=2, y=0: closest beacon is at x=2, y=10"),
+            String::from("Sensor at x=0, y=11: closest beacon is at x=2, y=10"),
+            String::from("Sensor at x=20, y=14: closest beacon is at x=25, y=17"),
+            String::from("Sensor at x=17, y=20: closest beacon is at x=21, y=22"),
+            String::from("Sensor at x=16, y=7: closest beacon is at x=15, y=3"),
+            String::from("Sensor at x=14, y=3: closest beacon is at x=15, y=3"),
+            String::from("Sensor at x=20, y=1: closest beacon is at x=15, y=3"),
+        ]
+        .iter()
+        .map(|line| line.parse().unwrap())
+        .collect();
+
+        // assert_eq!(tunning_frequency(&sensors, 20), 56000011);
+    }
 }
