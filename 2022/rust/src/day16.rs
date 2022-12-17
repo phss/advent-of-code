@@ -48,8 +48,41 @@ pub fn part2() -> u32 {
 }
 
 fn most_pressure_released(valves: &Vec<Valve>) -> u32 {
+    let mut max_pressure = 0;
     let distances = distances_between_valves(&valves);
-    0
+
+    let mut valve_with_flow_lookup = vec![];
+    for valve in valves {
+        if valve.flow_rate > 0 {
+            valve_with_flow_lookup.push((valve.name.clone(), valve.flow_rate));
+        }
+    }
+
+    let mut pressures: Vec<(String, HashSet<String>, u32,  u32)> = vec![("AA".to_string(), HashSet::new(), 0, 0)];
+
+    while pressures.len() > 0 {
+        let (current_valve, visited_valves, minutes, pressure) = pressures.pop().unwrap();
+
+        if pressure > max_pressure {
+            max_pressure = pressure;
+        }
+
+        for (valve, flow_rate) in &valve_with_flow_lookup {
+            if !visited_valves.contains(valve) {
+                let valve_open_minutes = minutes + distances[&current_valve][valve] + 1;
+
+                if valve_open_minutes < 30 {
+                    let new_pressure = pressure + flow_rate * (30 - valve_open_minutes);
+                    let mut next_visited = visited_valves.clone();
+                    next_visited.insert(valve.clone());
+                    pressures.push((valve.clone(), next_visited, valve_open_minutes, new_pressure));
+                }
+            }
+        }
+    }
+
+
+    max_pressure
 }
 
 fn distances_between_valves(valves: &Vec<Valve>) -> HashMap<String, HashMap<String, u32>> {
