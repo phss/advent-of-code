@@ -3,6 +3,8 @@ use std::{
     str::FromStr,
 };
 
+use itertools::Itertools;
+
 use crate::parser;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -44,11 +46,48 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
-    0
+    let valves: Vec<Valve> = parser::read("data/day16.txt").unwrap();
+    most_pressure_released_with_elephant(&valves)
 }
 
 fn most_pressure_released(valves: &Vec<Valve>) -> u32 {
+    all_valid_paths(valves, 30)
+        .iter()
+        .map(|p| p.1)
+        .max()
+        .unwrap() as u32
+}
+
+fn most_pressure_released_with_elephant(valves: &Vec<Valve>) -> u32 {
     let mut max_pressure = 0;
+    let paths = all_valid_paths(valves, 26);
+    let valid_paths: Vec<&(HashSet<String>, u32)> = paths
+        .iter()
+        .sorted_by_key(|(_, flow)| flow)
+        .rev()
+        .collect();
+
+    for i in 0..valid_paths.len() {
+        for j in i..valid_paths.len() {
+            let (a_valves, a_flow) = valid_paths[i];
+            let (b_valves, b_flow) = valid_paths[j];
+
+            let pressure = a_flow + b_flow;
+            if pressure < max_pressure {
+                break;
+            }
+
+            if a_valves.iter().all(|v| !b_valves.contains(v)) && pressure > max_pressure {
+                max_pressure = pressure;
+            }
+        }
+    }
+
+    max_pressure 
+}
+
+fn all_valid_paths(valves: &Vec<Valve>, max_minutes: u32) -> Vec<(HashSet<String>, u32)> {
+    let mut all_paths = vec![];
     let distances = distances_between_valves(&valves);
 
     let mut valve_with_flow_lookup = vec![];
@@ -58,31 +97,33 @@ fn most_pressure_released(valves: &Vec<Valve>) -> u32 {
         }
     }
 
-    let mut pressures: Vec<(String, HashSet<String>, u32,  u32)> = vec![("AA".to_string(), HashSet::new(), 0, 0)];
+    let mut pressures: Vec<(String, HashSet<String>, u32, u32)> =
+        vec![("AA".to_string(), HashSet::new(), 0, 0)];
 
     while pressures.len() > 0 {
         let (current_valve, visited_valves, minutes, pressure) = pressures.pop().unwrap();
-
-        if pressure > max_pressure {
-            max_pressure = pressure;
-        }
+        all_paths.push((visited_valves.clone(), pressure));
 
         for (valve, flow_rate) in &valve_with_flow_lookup {
             if !visited_valves.contains(valve) {
                 let valve_open_minutes = minutes + distances[&current_valve][valve] + 1;
 
-                if valve_open_minutes < 30 {
-                    let new_pressure = pressure + flow_rate * (30 - valve_open_minutes);
+                if valve_open_minutes < max_minutes {
+                    let new_pressure = pressure + flow_rate * (max_minutes - valve_open_minutes);
                     let mut next_visited = visited_valves.clone();
                     next_visited.insert(valve.clone());
-                    pressures.push((valve.clone(), next_visited, valve_open_minutes, new_pressure));
+                    pressures.push((
+                        valve.clone(),
+                        next_visited,
+                        valve_open_minutes,
+                        new_pressure,
+                    ));
                 }
             }
         }
     }
 
-
-    max_pressure
+    all_paths
 }
 
 fn distances_between_valves(valves: &Vec<Valve>) -> HashMap<String, HashMap<String, u32>> {
@@ -137,8 +178,10 @@ mod tests {
             })
         );
         assert_eq!(
-            Valve::from_str("Valve AA has flow rate=42; tunnel leads
-             to valve DD"),
+            Valve::from_str(
+                "Valve AA has flow rate=42; tunnel leads
+             to valve DD"
+            ),
             Ok(Valve {
                 name: String::from("AA"),
                 flow_rate: 42,
@@ -221,5 +264,22 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let valves: Vec<Valve> = vec![
+            String::from("Valve AA has flow rate=0; tunnels lead to valves DD, II, BB"),
+            String::from("Valve BB has flow rate=13; tunnels lead to valves CC, AA"),
+            String::from("Valve CC has flow rate=2; tunnels lead to valves DD, BB"),
+            String::from("Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE"),
+            String::from("Valve EE has flow rate=3; tunnels lead to valves FF, DD"),
+            String::from("Valve FF has flow rate=0; tunnels lead to valves EE, GG"),
+            String::from("Valve GG has flow rate=0; tunnels lead to valves FF, HH"),
+            String::from("Valve HH has flow rate=22; tunnel leads to valve GG"),
+            String::from("Valve II has flow rate=0; tunnels lead to valves AA, JJ"),
+            String::from("Valve JJ has flow rate=21; tunnel leads to valve II"),
+        ]
+        .iter()
+        .map(|line| line.parse().unwrap())
+        .collect();
+        assert_eq!(most_pressure_released_with_elephant(&valves), 1707);
+    }
 }
