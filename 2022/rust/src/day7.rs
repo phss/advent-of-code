@@ -3,6 +3,7 @@ use std::{collections::HashMap, slice::Iter};
 use crate::parser;
 
 #[derive(PartialEq, Debug)]
+#[allow(dead_code)]
 enum DirTree {
     Dir {
         name: String,
@@ -14,6 +15,7 @@ enum DirTree {
     },
 }
 
+#[allow(dead_code)]
 impl DirTree {
     pub fn size(self: Self) -> u32 {
         match self {
