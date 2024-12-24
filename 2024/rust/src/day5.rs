@@ -54,7 +54,9 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
-    0
+    let lines: Vec<String> = parser::read("data/day5.txt").unwrap();
+    let (page_ordering_rules, pages_to_produce) = parse(lines);
+    fixing_incorrect_page_ordering(&page_ordering_rules, &pages_to_produce)
 }
 
 fn parse(lines: Vec<String>) -> (Vec<PageOrderingRule>, Vec<PagesToProduce>) {
@@ -73,6 +75,21 @@ fn parse(lines: Vec<String>) -> (Vec<PageOrderingRule>, Vec<PagesToProduce>) {
         .collect();
 
     (page_ordering_rules, pages_to_produce)
+}
+
+fn full_page_order(page_ordering_rules: &Vec<PageOrderingRule>) -> Vec<u32> {
+    let all_pages: HashSet<u32> = page_ordering_rules
+        .iter()
+        .flat_map(|rule| vec![rule.before, rule.after])
+        .collect();
+    let before_count = page_ordering_rules.iter().counts_by(|rule| rule.after);
+
+    let ordered_pages = all_pages
+        .into_iter()
+        .sorted_by_key(|page| before_count.get(page).unwrap_or(&0))
+        .collect::<Vec<u32>>();
+
+    ordered_pages
 }
 
 fn validate_page_ordering(
@@ -112,6 +129,50 @@ fn validate_page_ordering(
     result
 }
 
+fn fixing_incorrect_page_ordering(
+    page_ordering_rules: &Vec<PageOrderingRule>,
+    pages_to_produce: &Vec<PagesToProduce>,
+) -> u32 {
+    let ordering = page_ordering_rules
+        .into_iter()
+        .fold(HashMap::new(), |mut acc, rule| {
+            acc.entry(rule.before)
+                .or_insert(HashSet::new())
+                .insert(rule.after);
+            acc
+        });
+
+    let mut result = 0;
+
+    for pages in pages_to_produce {
+        let mut previous_pages = HashSet::new();
+        let empty_set = HashSet::new();
+
+        for page in &pages.0 {
+            let must_be_after_pages = ordering.get(page).unwrap_or(&empty_set);
+            if !previous_pages.is_disjoint(must_be_after_pages) {
+                let relevant_page_ordering_rules: Vec<PageOrderingRule> = page_ordering_rules
+                    .iter()
+                    .filter(|rule| pages.0.contains(&rule.before) && pages.0.contains(&rule.after))
+                    .map(|rule| PageOrderingRule {
+                        before: rule.before,
+                        after: rule.after,
+                    })
+                    .collect();
+
+                let blah = PagesToProduce(full_page_order(&relevant_page_ordering_rules));
+
+                result += blah.middle_page();
+
+                break;
+            }
+            previous_pages.insert(*page);
+        }
+    }
+
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -144,5 +205,29 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let page_ordering_rules: Vec<PageOrderingRule> = vec![
+            "47|53", "97|13", "97|61", "97|47", "75|29", "61|13", "75|53", "29|13", "97|29",
+            "53|29", "61|53", "97|53", "61|29", "47|13", "75|47", "97|75", "47|61", "75|61",
+            "47|29", "75|13", "53|13",
+        ]
+        .iter()
+        .map(|s| s.parse().unwrap())
+        .collect();
+        let pages_to_produce: Vec<PagesToProduce> = vec![
+            "75,47,61,53,29",
+            "97,61,53,29,13",
+            "75,29,13",
+            "75,97,47,61,53",
+            "61,13,29",
+            "97,13,75,29,47",
+        ]
+        .iter()
+        .map(|s| s.parse().unwrap())
+        .collect();
+
+        let result = fixing_incorrect_page_ordering(&page_ordering_rules, &pages_to_produce);
+
+        // assert_eq!(result, 123)
+    }
 }
