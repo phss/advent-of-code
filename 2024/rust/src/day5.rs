@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    str::FromStr,
-};
+use std::{collections::HashSet, str::FromStr};
 
 use itertools::Itertools;
 
@@ -77,52 +74,35 @@ fn parse(lines: Vec<String>) -> (Vec<PageOrderingRule>, Vec<PagesToProduce>) {
     (page_ordering_rules, pages_to_produce)
 }
 
-fn full_page_order(page_ordering_rules: &Vec<PageOrderingRule>) -> Vec<u32> {
+fn full_page_order(page_ordering_rules: &Vec<&PageOrderingRule>) -> Vec<u32> {
     let all_pages: HashSet<u32> = page_ordering_rules
         .iter()
         .flat_map(|rule| vec![rule.before, rule.after])
         .collect();
     let before_count = page_ordering_rules.iter().counts_by(|rule| rule.after);
 
-    let ordered_pages = all_pages
+    all_pages
         .into_iter()
         .sorted_by_key(|page| before_count.get(page).unwrap_or(&0))
-        .collect::<Vec<u32>>();
-
-    ordered_pages
+        .collect::<Vec<u32>>()
 }
 
 fn validate_page_ordering(
     page_ordering_rules: &Vec<PageOrderingRule>,
     pages_to_produce: &Vec<PagesToProduce>,
 ) -> u32 {
-    let ordering = page_ordering_rules
-        .into_iter()
-        .fold(HashMap::new(), |mut acc, rule| {
-            acc.entry(rule.before)
-                .or_insert(HashSet::new())
-                .insert(rule.after);
-            acc
-        });
-
     let mut result = 0;
 
     for pages in pages_to_produce {
-        let mut valid = true;
-        let mut previous_pages = HashSet::new();
-        let empty_set = HashSet::new();
+        let relevant_page_ordering_rules = page_ordering_rules
+            .iter()
+            .filter(|rule| pages.0.contains(&rule.before) && pages.0.contains(&rule.after))
+            .collect();
 
-        for page in &pages.0 {
-            let must_be_after_pages = ordering.get(page).unwrap_or(&empty_set);
-            if !previous_pages.is_disjoint(must_be_after_pages) {
-                valid = false;
-                break;
-            }
-            previous_pages.insert(*page);
-        }
+        let fully_ordered_pages = PagesToProduce(full_page_order(&relevant_page_ordering_rules));
 
-        if valid {
-            result += pages.middle_page();
+        if pages.0 == fully_ordered_pages.0 {
+            result += fully_ordered_pages.middle_page();
         }
     }
 
@@ -133,40 +113,18 @@ fn fixing_incorrect_page_ordering(
     page_ordering_rules: &Vec<PageOrderingRule>,
     pages_to_produce: &Vec<PagesToProduce>,
 ) -> u32 {
-    let ordering = page_ordering_rules
-        .into_iter()
-        .fold(HashMap::new(), |mut acc, rule| {
-            acc.entry(rule.before)
-                .or_insert(HashSet::new())
-                .insert(rule.after);
-            acc
-        });
-
     let mut result = 0;
 
     for pages in pages_to_produce {
-        let mut previous_pages = HashSet::new();
-        let empty_set = HashSet::new();
+        let relevant_page_ordering_rules = page_ordering_rules
+            .iter()
+            .filter(|rule| pages.0.contains(&rule.before) && pages.0.contains(&rule.after))
+            .collect();
 
-        for page in &pages.0 {
-            let must_be_after_pages = ordering.get(page).unwrap_or(&empty_set);
-            if !previous_pages.is_disjoint(must_be_after_pages) {
-                let relevant_page_ordering_rules: Vec<PageOrderingRule> = page_ordering_rules
-                    .iter()
-                    .filter(|rule| pages.0.contains(&rule.before) && pages.0.contains(&rule.after))
-                    .map(|rule| PageOrderingRule {
-                        before: rule.before,
-                        after: rule.after,
-                    })
-                    .collect();
+        let fully_ordered_pages = PagesToProduce(full_page_order(&relevant_page_ordering_rules));
 
-                let blah = PagesToProduce(full_page_order(&relevant_page_ordering_rules));
-
-                result += blah.middle_page();
-
-                break;
-            }
-            previous_pages.insert(*page);
+        if pages.0 != fully_ordered_pages.0 {
+            result += fully_ordered_pages.middle_page();
         }
     }
 
@@ -228,6 +186,6 @@ mod tests {
 
         let result = fixing_incorrect_page_ordering(&page_ordering_rules, &pages_to_produce);
 
-        // assert_eq!(result, 123)
+        assert_eq!(result, 123)
     }
 }
