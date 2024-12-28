@@ -1,6 +1,6 @@
 use std::env;
 
-use advent_of_code_2024::{day1, day2, day3, day4, day5, day6, day7, day8};
+use advent_of_code_2024::{day1, day2, day3, day4, day5, day6, day7, day8, day9};
 
 fn parse_command_line_args() -> (u32, u32) {
     let args: Vec<String> = env::args().collect();
@@ -33,6 +33,8 @@ fn run(day: u32, part: u32) -> u32 {
         (7, 2) => day7::part2,
         (8, 1) => day8::part1,
         (8, 2) => day8::part2,
+        (9, 1) => day9::part1,
+        (9, 2) => day9::part2,
         _ => panic!("No solution yet for day {} and part {}", day, part),
     };
     solution()
