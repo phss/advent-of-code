@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use itertools::Itertools;
 
 use crate::parser;
 
@@ -12,13 +12,22 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
-    0
+    let lines: Vec<String> = parser::read("data/day10.txt").unwrap();
+    let map = parse(&lines);
+    sum_all_paths_trailheads(&map)
 }
 
 fn sum_trailheads(map: &Map) -> u32 {
     find_trailheads(map)
         .iter()
-        .map(|trailhead| count_trails(map, &trailhead))
+        .map(|trailhead| find_all_trailends(map, &trailhead).iter().unique().count() as u32)
+        .sum()
+}
+
+fn sum_all_paths_trailheads(map: &Map) -> u32 {
+    find_trailheads(map)
+        .iter()
+        .map(|trailhead| find_all_trailends(map, &trailhead).iter().count() as u32)
         .sum()
 }
 
@@ -46,22 +55,19 @@ fn find_trailheads(map: &Map) -> Vec<Coord> {
     trailheads
 }
 
-fn count_trails(map: &Map, trailhead: &Coord) -> u32 {
+fn find_all_trailends(map: &Map, trailhead: &Coord) -> Vec<Coord> {
     let map_width = map[0].len() - 1;
     let map_height = map.len() - 1;
 
-    let mut trailends = HashSet::new();
-    let mut visited = HashSet::new();
+    let mut trailends = Vec::new();
     let mut to_visit = vec![*trailhead];
 
     while let Some(coord) = to_visit.pop() {
         let (x, y) = coord;
         let height = map[y][x];
 
-        visited.insert(coord);
-
         if height == 9 {
-            trailends.insert(coord);
+            trailends.push(coord);
             continue;
         }
 
@@ -75,13 +81,13 @@ fn count_trails(map: &Map, trailhead: &Coord) -> u32 {
             let new_coord_height = map[new_y][new_x];
             let is_single_step = new_coord_height.checked_sub(height) == Some(1);
 
-            if is_single_step && !visited.contains(&new_coord) {
+            if is_single_step {
                 to_visit.push(new_coord);
             }
         }
     }
 
-    trailends.len() as u32
+    trailends
 }
 
 #[cfg(test)]
@@ -107,5 +113,20 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let map = vec![
+            vec![8, 9, 0, 1, 0, 1, 2, 3],
+            vec![7, 8, 1, 2, 1, 8, 7, 4],
+            vec![8, 7, 4, 3, 0, 9, 6, 5],
+            vec![9, 6, 5, 4, 9, 8, 7, 4],
+            vec![4, 5, 6, 7, 8, 9, 0, 3],
+            vec![3, 2, 0, 1, 9, 0, 1, 2],
+            vec![0, 1, 3, 2, 9, 8, 0, 1],
+            vec![1, 0, 4, 5, 6, 7, 3, 2],
+        ];
+
+        let result = sum_all_paths_trailheads(&map);
+
+        assert_eq!(result, 81)
+    }
 }
