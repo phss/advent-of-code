@@ -1,57 +1,55 @@
+mod map;
 use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
+use map::Map;
 
 use crate::parser;
 
 pub fn part1() -> u32 {
-    let map: Vec<String> = parser::read("data/day12.txt").unwrap();
+    let lines: Vec<String> = parser::read("data/day12.txt").unwrap();
+    let map = Map { raw: lines };
     total_price(&map)
 }
 
 pub fn part2() -> u32 {
-    let map: Vec<String> = parser::read("data/day12.txt").unwrap();
+    let lines: Vec<String> = parser::read("data/day12.txt").unwrap();
+    let map = Map { raw: lines };
     total_price_with_discount(&map)
 }
 
-fn total_price(map: &Vec<String>) -> u32 {
+fn total_price(map: &Map) -> u32 {
     let mut price = 0;
-    let mut visited: HashSet<(usize, usize)> = HashSet::new();
+    let mut visited = HashSet::new();
 
-    for (y, row) in map.iter().enumerate() {
-        for (x, region) in row.chars().enumerate() {
-            let position = (x, y);
-            if !visited.contains(&position) {
-                let region_nodes = get_region_nodes(map, region, position);
+    for (region_name, position) in map.iter() {
+        if !visited.contains(&position) {
+            let region_nodes = get_region_nodes(&map.raw, region_name, position);
 
-                let area = region_nodes.len() as u32;
-                let perimeter = calculate_perimeter(map, region, &region_nodes);
-                price += area * perimeter;
+            let area = region_nodes.len() as u32;
+            let perimeter = calculate_perimeter(&map.raw, region_name, &region_nodes);
+            price += area * perimeter;
 
-                visited.extend(region_nodes);
-            }
+            visited.extend(region_nodes);
         }
     }
 
     price
 }
 
-fn total_price_with_discount(map: &Vec<String>) -> u32 {
+fn total_price_with_discount(map: &Map) -> u32 {
     let mut price = 0;
-    let mut visited: HashSet<(usize, usize)> = HashSet::new();
+    let mut visited = HashSet::new();
 
-    for (y, row) in map.iter().enumerate() {
-        for (x, region) in row.chars().enumerate() {
-            let position = (x, y);
-            if !visited.contains(&position) {
-                let region_nodes = get_region_nodes(map, region, position);
+    for (region_name, position) in map.iter() {
+        if !visited.contains(&position) {
+            let region_nodes = get_region_nodes(&map.raw, region_name, position);
 
-                let area = region_nodes.len() as u32;
-                let sides = calculate_sides(map, region, &region_nodes);
-                price += area * sides;
+            let area = region_nodes.len() as u32;
+            let sides = calculate_sides(&map.raw, region_name, &region_nodes);
+            price += area * sides;
 
-                visited.extend(region_nodes);
-            }
+            visited.extend(region_nodes);
         }
     }
 
@@ -195,7 +193,7 @@ mod tests {
 
     #[test]
     fn sample_input_part_1() {
-        let map = vec![
+        let lines = vec![
             "RRRRIICCFF",
             "RRRRIICCCF",
             "VVRRRCCFFF",
@@ -207,7 +205,8 @@ mod tests {
             "MIIISIJEEE",
             "MMMISSJEEE",
         ];
-        let map: Vec<String> = map.into_iter().map(|s| s.to_string()).collect();
+        let lines: Vec<String> = lines.into_iter().map(|s| s.to_string()).collect();
+        let map = Map { raw: lines };
 
         let result = total_price(&map);
 
@@ -216,7 +215,7 @@ mod tests {
 
     #[test]
     fn sample_input_part_2() {
-        let map = vec![
+        let lines = vec![
             "RRRRIICCFF",
             "RRRRIICCCF",
             "VVRRRCCFFF",
@@ -228,7 +227,8 @@ mod tests {
             "MIIISIJEEE",
             "MMMISSJEEE",
         ];
-        let map: Vec<String> = map.into_iter().map(|s| s.to_string()).collect();
+        let lines: Vec<String> = lines.into_iter().map(|s| s.to_string()).collect();
+        let map = Map { raw: lines };
 
         let result = total_price_with_discount(&map);
 
