@@ -26,11 +26,7 @@ fn total_price(map: &Map) -> u32 {
     for (_, position) in map.iter() {
         if !visited.contains(&position) {
             let region = map.get_region(position);
-
-            let area = region.area();
-            let perimeter = calculate_perimeter(&map.raw, region.name, &region.nodes);
-            price += area * perimeter;
-
+            price += region.area() * region.perimeter(&map);
             visited.extend(region.nodes);
         }
     }
@@ -55,34 +51,6 @@ fn total_price_with_discount(map: &Map) -> u32 {
     }
 
     price
-}
-
-fn calculate_perimeter(
-    map: &Vec<String>,
-    region: char,
-    region_nodes: &HashSet<(usize, usize)>,
-) -> u32 {
-    let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-    region_nodes
-        .iter()
-        .flat_map(|(x, y)| {
-            directions.iter().map(|(dir_x, dir_y)| {
-                let new_x = x.checked_add_signed(*dir_x);
-                let new_y = y.checked_add_signed(*dir_y);
-                let new_position = new_x.zip(new_y);
-
-                let new_region = new_position.and_then(|(new_x, new_y)| {
-                    map.get(new_y).unwrap_or(&String::new()).chars().nth(new_x)
-                });
-
-                if new_region != Some(region) {
-                    1
-                } else {
-                    0
-                }
-            })
-        })
-        .sum()
 }
 
 fn calculate_sides(map: &Vec<String>, region: char, region_nodes: &HashSet<(usize, usize)>) -> u32 {
