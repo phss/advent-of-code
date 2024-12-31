@@ -1,8 +1,7 @@
 mod map;
 mod region;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
-use itertools::Itertools;
 use map::Map;
 
 use crate::parser;
@@ -41,86 +40,12 @@ fn total_price_with_discount(map: &Map) -> u32 {
     for (_, position) in map.iter() {
         if !visited.contains(&position) {
             let region = map.get_region(position);
-
-            let area = region.area();
-            let sides = calculate_sides(&map.raw, region.name, &region.nodes);
-            price += area * sides;
-
+            price += region.area() * region.sides(&map);
             visited.extend(region.nodes);
         }
     }
 
     price
-}
-
-fn calculate_sides(map: &Vec<String>, region: char, region_nodes: &HashSet<(usize, usize)>) -> u32 {
-    let horizontal_directions = [(1, 0), (-1, 0)];
-    let vertical_directions = [(0, 1), (0, -1)];
-    let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-
-    let mut sides_by_direction = HashMap::new();
-    for (x, y) in region_nodes {
-        for direction @ (dir_x, dir_y) in directions {
-            let new_x = *x as isize + dir_x;
-            let new_y = *y as isize + dir_y;
-
-            let new_region = if new_x >= 0 && new_y >= 0 {
-                map.get(new_y as usize)
-                    .unwrap_or(&String::new())
-                    .chars()
-                    .nth(new_x as usize)
-            } else {
-                None
-            };
-
-            if new_region != Some(region) {
-                sides_by_direction
-                    .entry(direction)
-                    .or_insert(Vec::new())
-                    .push((new_x, new_y));
-            }
-        }
-    }
-
-    let mut sides = 0;
-
-    for direction in horizontal_directions {
-        let blah = sides_by_direction
-            .get(&direction)
-            .unwrap()
-            .iter()
-            .into_group_map_by(|(x, _)| x)
-            .into_values();
-        for b in blah {
-            sides += 1 + b
-                .iter()
-                .map(|(_, y)| y)
-                .sorted()
-                .tuple_windows()
-                .filter(|(a, b)| (*b - *a) > 1)
-                .count();
-        }
-    }
-
-    for direction in vertical_directions {
-        let blah = sides_by_direction
-            .get(&direction)
-            .unwrap()
-            .iter()
-            .into_group_map_by(|(_, y)| y)
-            .into_values();
-        for b in blah {
-            sides += 1 + b
-                .iter()
-                .map(|(x, _)| x)
-                .sorted()
-                .tuple_windows()
-                .filter(|(a, b)| (*b - *a) > 1)
-                .count();
-        }
-    }
-
-    sides as u32
 }
 
 #[cfg(test)]
