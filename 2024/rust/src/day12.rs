@@ -1,4 +1,5 @@
 mod map;
+mod region;
 use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
@@ -22,15 +23,15 @@ fn total_price(map: &Map) -> u32 {
     let mut price = 0;
     let mut visited = HashSet::new();
 
-    for (region_name, position) in map.iter() {
+    for (_, position) in map.iter() {
         if !visited.contains(&position) {
-            let region_nodes = map.get_region_nodes(region_name, position);
+            let region = map.get_region(position);
 
-            let area = region_nodes.len() as u32;
-            let perimeter = calculate_perimeter(&map.raw, region_name, &region_nodes);
+            let area = region.area();
+            let perimeter = calculate_perimeter(&map.raw, region.name, &region.nodes);
             price += area * perimeter;
 
-            visited.extend(region_nodes);
+            visited.extend(region.nodes);
         }
     }
 
@@ -41,15 +42,15 @@ fn total_price_with_discount(map: &Map) -> u32 {
     let mut price = 0;
     let mut visited = HashSet::new();
 
-    for (region_name, position) in map.iter() {
+    for (_, position) in map.iter() {
         if !visited.contains(&position) {
-            let region_nodes = map.get_region_nodes(region_name, position);
+            let region = map.get_region(position);
 
-            let area = region_nodes.len() as u32;
-            let sides = calculate_sides(&map.raw, region_name, &region_nodes);
+            let area = region.area();
+            let sides = calculate_sides(&map.raw, region.name, &region.nodes);
             price += area * sides;
 
-            visited.extend(region_nodes);
+            visited.extend(region.nodes);
         }
     }
 

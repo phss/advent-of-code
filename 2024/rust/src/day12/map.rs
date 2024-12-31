@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 
-type Position = (usize, usize);
+use super::region::Region;
+
+pub(crate) type Position = (usize, usize);
 
 pub struct Map {
     pub raw: Vec<String>,
@@ -15,15 +17,16 @@ impl Map {
         }
     }
 
-    pub fn get_region_nodes(&self, region: char, start: Position) -> HashSet<Position> {
-        let mut region_nodes = HashSet::new();
+    pub fn get_region(&self, start: Position) -> Region {
+        let mut nodes = HashSet::new();
         let mut to_visit = vec![start];
+        let name = self.raw[start.1].chars().nth(start.0).unwrap_or(' ');
 
         while let Some(position @ (x, y)) = to_visit.pop() {
-            if region_nodes.contains(&position) {
+            if nodes.contains(&position) {
                 continue;
             }
-            region_nodes.insert(position);
+            nodes.insert(position);
 
             let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
             for (dir_x, dir_y) in directions.iter() {
@@ -39,13 +42,13 @@ impl Map {
                         .nth(new_x)
                 });
 
-                if new_region == Some(region) {
+                if new_region == Some(name) {
                     to_visit.push(new_position.unwrap());
                 }
             }
         }
 
-        region_nodes
+        Region { name, nodes }
     }
 }
 
@@ -136,12 +139,12 @@ mod tests {
     }
 
     #[test]
-    fn test_get_region_nodes() {
+    fn test_get_region() {
         let map = Map {
             raw: vec!["aaa".to_string(), "aba".to_string(), "aaa".to_string()],
         };
 
-        let region_nodes = map.get_region_nodes('a', (0, 0));
+        let region = map.get_region((0, 0));
         let expected_nodes: HashSet<Position> = vec![
             (0, 0),
             (1, 0),
@@ -154,10 +157,10 @@ mod tests {
         ]
         .into_iter()
         .collect();
-        assert_eq!(region_nodes, expected_nodes);
+        assert_eq!(region.nodes, expected_nodes);
 
-        let region_nodes = map.get_region_nodes('b', (1, 1));
+        let region = map.get_region((1, 1));
         let expected_nodes: HashSet<Position> = vec![(1, 1)].into_iter().collect();
-        assert_eq!(region_nodes, expected_nodes);
+        assert_eq!(region.nodes, expected_nodes);
     }
 }
