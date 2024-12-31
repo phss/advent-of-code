@@ -1,4 +1,6 @@
-type Positon = (usize, usize);
+use std::collections::HashSet;
+
+type Position = (usize, usize);
 
 pub struct Map {
     pub raw: Vec<String>,
@@ -12,6 +14,39 @@ impl Map {
             y_index: 0,
         }
     }
+
+    pub fn get_region_nodes(&self, region: char, start: Position) -> HashSet<Position> {
+        let mut region_nodes = HashSet::new();
+        let mut to_visit = vec![start];
+
+        while let Some(position @ (x, y)) = to_visit.pop() {
+            if region_nodes.contains(&position) {
+                continue;
+            }
+            region_nodes.insert(position);
+
+            let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+            for (dir_x, dir_y) in directions.iter() {
+                let new_x = x.checked_add_signed(*dir_x);
+                let new_y = y.checked_add_signed(*dir_y);
+                let new_position = new_x.zip(new_y);
+
+                let new_region = new_position.and_then(|(new_x, new_y)| {
+                    self.raw
+                        .get(new_y)
+                        .unwrap_or(&String::new())
+                        .chars()
+                        .nth(new_x)
+                });
+
+                if new_region == Some(region) {
+                    to_visit.push(new_position.unwrap());
+                }
+            }
+        }
+
+        region_nodes
+    }
 }
 
 pub struct MapIterator<'a> {
@@ -21,7 +56,7 @@ pub struct MapIterator<'a> {
 }
 
 impl<'a> Iterator for MapIterator<'a> {
-    type Item = (char, Positon);
+    type Item = (char, Position);
 
     fn next(&mut self) -> Option<Self::Item> {
         let result = self
@@ -98,5 +133,31 @@ mod tests {
         assert_eq!(iter.next(), Some(('b', (0, 1))));
         assert_eq!(iter.next(), Some(('c', (0, 2))));
         assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn test_get_region_nodes() {
+        let map = Map {
+            raw: vec!["aaa".to_string(), "aba".to_string(), "aaa".to_string()],
+        };
+
+        let region_nodes = map.get_region_nodes('a', (0, 0));
+        let expected_nodes: HashSet<Position> = vec![
+            (0, 0),
+            (1, 0),
+            (2, 0),
+            (0, 1),
+            (2, 1),
+            (0, 2),
+            (1, 2),
+            (2, 2),
+        ]
+        .into_iter()
+        .collect();
+        assert_eq!(region_nodes, expected_nodes);
+
+        let region_nodes = map.get_region_nodes('b', (1, 1));
+        let expected_nodes: HashSet<Position> = vec![(1, 1)].into_iter().collect();
+        assert_eq!(region_nodes, expected_nodes);
     }
 }

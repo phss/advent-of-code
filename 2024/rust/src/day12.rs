@@ -24,7 +24,7 @@ fn total_price(map: &Map) -> u32 {
 
     for (region_name, position) in map.iter() {
         if !visited.contains(&position) {
-            let region_nodes = get_region_nodes(&map.raw, region_name, position);
+            let region_nodes = map.get_region_nodes(region_name, position);
 
             let area = region_nodes.len() as u32;
             let perimeter = calculate_perimeter(&map.raw, region_name, &region_nodes);
@@ -43,7 +43,7 @@ fn total_price_with_discount(map: &Map) -> u32 {
 
     for (region_name, position) in map.iter() {
         if !visited.contains(&position) {
-            let region_nodes = get_region_nodes(&map.raw, region_name, position);
+            let region_nodes = map.get_region_nodes(region_name, position);
 
             let area = region_nodes.len() as u32;
             let sides = calculate_sides(&map.raw, region_name, &region_nodes);
@@ -54,39 +54,6 @@ fn total_price_with_discount(map: &Map) -> u32 {
     }
 
     price
-}
-
-fn get_region_nodes(
-    map: &Vec<String>,
-    region: char,
-    start: (usize, usize),
-) -> HashSet<(usize, usize)> {
-    let mut region_nodes = HashSet::new();
-    let mut to_visit = vec![start];
-
-    while let Some(position @ (x, y)) = to_visit.pop() {
-        if region_nodes.contains(&position) {
-            continue;
-        }
-        region_nodes.insert(position);
-
-        let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-        for (dir_x, dir_y) in directions.iter() {
-            let new_x = x.checked_add_signed(*dir_x);
-            let new_y = y.checked_add_signed(*dir_y);
-            let new_position = new_x.zip(new_y);
-
-            let new_region = new_position.and_then(|(new_x, new_y)| {
-                map.get(new_y).unwrap_or(&String::new()).chars().nth(new_x)
-            });
-
-            if new_region == Some(region) {
-                to_visit.push(new_position.unwrap());
-            }
-        }
-    }
-
-    region_nodes
 }
 
 fn calculate_perimeter(
