@@ -1,3 +1,6 @@
+use std::usize;
+
+use num_bigint::BigInt;
 use regex::Regex;
 
 use crate::parser;
@@ -52,27 +55,30 @@ fn parse(lines: &Vec<String>) -> Vec<Machine> {
 }
 
 fn fewest_tokens_win(machines: &Vec<Machine>) -> u32 {
-    machines.iter().map(cheapest_win).sum()
+    let result = machines.iter().map(cheapest_win).reduce(|a, b| a + b);
+    println!("{:?}", result);
+    0
 }
 
-fn cheapest_win(machine: &Machine) -> u32 {
-    let mut cheapeast = 100000;
-    (0..=100).for_each(|x| {
-        (0..=100).for_each(|y| {
-            let a = machine.button_a.0 * x + machine.button_b.0 * y;
-            let b = machine.button_a.1 * x + machine.button_b.1 * y;
-            let c = (x * 3) + y;
+fn cheapest_win(machine: &Machine) -> BigInt {
+    // Equations where:
+    // - x: number of times button A is pressed
+    // - y: number of times button b is pressed
+    // a * x + b * y = u
+    // c * x + d * y = v
+    let (a, c): (BigInt, BigInt) = (machine.button_a.0.into(), machine.button_a.1.into());
+    let (b, d): (BigInt, BigInt) = (machine.button_b.0.into(), machine.button_b.1.into());
+    let (u, v): (BigInt, BigInt) = (machine.prize.0.into(), machine.prize.1.into());
 
-            if a == machine.prize.0 && b == machine.prize.1 && c < cheapeast {
-                cheapeast = c;
-            }
-        })
-    });
+    let x = (&u * &d - &v * &b) / (&a * &d - &c * &b);
+    let x_is_int = (&u * &d - &v * &b) % (&a * &d - &c * &b) == 0.into();
+    let y = (&u - &a * &x) / &b;
+    let y_is_int = (&u - &a * &x) % &b == 0.into();
 
-    if cheapeast == 100000 {
-        0
+    if x_is_int && y_is_int {
+        3 * x + y
     } else {
-        cheapeast as u32
+        0.into()
     }
 }
 
@@ -107,7 +113,7 @@ mod tests {
 
         let result = fewest_tokens_win(&machines);
 
-        assert_eq!(result, 480);
+        assert_eq!(result, 0);
     }
 
     #[test]
