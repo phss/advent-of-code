@@ -46,10 +46,16 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
-    0
+    let robots: Vec<Robot> = parser::read("data/day14.txt").unwrap();
+    find_christmas_tree(&robots, 101, 103)
 }
 
 fn safety_factor_after(robots: &Vec<Robot>, width: usize, height: usize, seconds: u32) -> u32 {
+    let moved_robots = move_robots(&robots, width, height, seconds);
+    safety_factor(&moved_robots, width as usize, height as usize)
+}
+
+fn move_robots(robots: &Vec<Robot>, width: usize, height: usize, seconds: u32) -> Vec<Robot> {
     let width = width as isize;
     let height = height as isize;
     let seconds = seconds as isize;
@@ -64,7 +70,7 @@ fn safety_factor_after(robots: &Vec<Robot>, width: usize, height: usize, seconds
         new_value as usize
     };
 
-    let robots = robots
+    robots
         .iter()
         .map(|robot| {
             let (x, y) = robot.position;
@@ -75,9 +81,7 @@ fn safety_factor_after(robots: &Vec<Robot>, width: usize, height: usize, seconds
                 velocities: robot.velocities,
             }
         })
-        .collect();
-
-    safety_factor(&robots, width as usize, height as usize)
+        .collect()
 }
 
 fn safety_factor(robots: &Vec<Robot>, width: usize, height: usize) -> u32 {
@@ -119,6 +123,34 @@ fn safety_factor(robots: &Vec<Robot>, width: usize, height: usize) -> u32 {
     };
 
     factor
+}
+
+fn find_christmas_tree(initial_robots: &Vec<Robot>, width: usize, height: usize) -> u32 {
+    let mut seconds = 0;
+
+    loop {
+        seconds += 1;
+        let robots = move_robots(&initial_robots, width, height, seconds);
+
+        let mut tree = vec![String::from_iter(vec!['.'; width]); height];
+        for robot in &robots {
+            let (x, y) = robot.position;
+            tree[y].replace_range(x..x + 1, "#");
+        }
+
+        if tree.iter().any(|line| line.contains("############")) {
+            print_tree(&tree);
+            break;
+        }
+    }
+
+    seconds
+}
+
+fn print_tree(tree: &Vec<String>) {
+    for line in tree {
+        println!("{}", line);
+    }
 }
 
 #[cfg(test)]
