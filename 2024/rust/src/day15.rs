@@ -1,43 +1,33 @@
+mod map;
+use std::collections::HashSet;
+
 use crate::parser;
 
 pub fn part1() -> u32 {
     let lines: Vec<String> = parser::read("data/day15.txt").unwrap();
-    let (mut map, moves, initial_position) = parse(&lines);
-    sum_of_gps_coords(&mut map, &moves, initial_position)
+    let (mut map, moves) = map::parse(&lines);
+    sum_of_gps_coords(&mut map, &moves)
 }
 
 pub fn part2() -> u32 {
-    // let lines: Vec<String> = parser::read("data/day15.txt").unwrap();
-    0
+    let lines: Vec<String> = parser::read("data/day15.txt").unwrap();
+    let (map, moves) = map::parse(&lines);
+    let mut wide_map = map::widen(&map);
+    sum_of_gps_coords(&mut wide_map, &moves)
 }
 
-fn sum_of_gps_coords(
-    map: &mut Vec<Vec<char>>,
-    moves: &Vec<char>,
-    initial_position: (usize, usize),
-) -> u32 {
-    let (mut x, mut y) = initial_position;
+fn sum_of_gps_coords(map: &mut Vec<Vec<char>>, moves: &Vec<char>) -> u32 {
+    let (mut x, mut y) = map::robot_position(map);
 
     moves.iter().map(to_dir).for_each(|dir @ (dir_x, dir_y)| {
-        let new_x = x.wrapping_add_signed(dir_x);
-        let new_y = y.wrapping_add_signed(dir_y);
-
-        let moved = match map[new_y][new_x] {
-            '.' => true,
-            'O' => push(map, (new_x, new_y), dir),
-            _ => false,
-        };
-
-        if moved {
-            map[y][x] = '.';
-            map[new_y][new_x] = '@';
-            x = new_x;
-            y = new_y;
+        if push(map, &vec![(x, y)], dir) {
+            x = x.wrapping_add_signed(dir_x);
+            y = y.wrapping_add_signed(dir_y);
         }
     });
 
-    print(map);
-    score(map)
+    map::print(map);
+    map::score(map)
 }
 
 fn to_dir(m: &char) -> (isize, isize) {
@@ -52,75 +42,47 @@ fn to_dir(m: &char) -> (isize, isize) {
 
 fn push(
     map: &mut Vec<Vec<char>>,
-    initial_position: (usize, usize),
-    (dir_x, dir_y): (isize, isize),
+    to_push: &Vec<(usize, usize)>,
+    dir @ (dir_x, dir_y): (isize, isize),
 ) -> bool {
-    let (mut free_x, mut free_y) = initial_position;
-    loop {
-        free_x = free_x.wrapping_add_signed(dir_x);
-        free_y = free_y.wrapping_add_signed(dir_y);
+    if to_push.is_empty() {
+        return true;
+    }
 
-        match map[free_y][free_x] {
+    let vertical_move = dir_y != 0;
+    let mut next_level = HashSet::new();
+
+    for (x, y) in to_push {
+        let next_x = x.wrapping_add_signed(dir_x);
+        let next_y = y.wrapping_add_signed(dir_y);
+        let c = map[next_y][next_x];
+
+        match c {
             '#' => return false,
-            '.' => break,
-            _ => {}
-        }
-    }
-
-    let (mut x, mut y) = initial_position;
-    map[y][x] = '.';
-    while x != free_x || y != free_y {
-        x = x.wrapping_add_signed(dir_x);
-        y = y.wrapping_add_signed(dir_y);
-        map[y][x] = 'O';
-    }
-
-    true
-}
-
-fn parse(lines: &Vec<String>) -> (Vec<Vec<char>>, Vec<char>, (usize, usize)) {
-    let mut raw = lines.split(|line| line.is_empty());
-
-    let map: Vec<Vec<char>> = raw
-        .next()
-        .unwrap()
-        .iter()
-        .map(|s| s.chars().collect())
-        .collect();
-    let moves = raw.next().unwrap().iter().flat_map(|s| s.chars()).collect();
-
-    let mut initial_position = (0, 0);
-    for (y, row) in map.iter().enumerate() {
-        if let Some(x) = row.iter().position(|&c| c == '@') {
-            initial_position = (x, y);
-            break;
-        }
-    }
-
-    (map, moves, initial_position)
-}
-
-fn print(map: &Vec<Vec<char>>) {
-    for row in map {
-        for c in row {
-            print!("{}", c);
-        }
-        println!("");
-    }
-}
-
-fn score(map: &Vec<Vec<char>>) -> u32 {
-    let mut total = 0;
-
-    for (y, row) in map.iter().enumerate() {
-        for (x, c) in row.iter().enumerate() {
-            if *c == 'O' {
-                total += x + (100 * y);
+            '.' => {}
+            _ => {
+                next_level.insert((next_x, next_y));
             }
         }
+
+        if vertical_move && (c == '[' || c == ']') {
+            let next_x = if c == '[' { next_x + 1 } else { next_x - 1 };
+            next_level.insert((next_x, next_y));
+        }
     }
 
-    total as u32
+    let can_push = push(map, &next_level.into_iter().collect(), dir);
+
+    if can_push {
+        for (x, y) in to_push {
+            let next_x = x.wrapping_add_signed(dir_x);
+            let next_y = y.wrapping_add_signed(dir_y);
+            map[next_y][next_x] = map[*y][*x];
+            map[*y][*x] = '.';
+        }
+    }
+
+    can_push
 }
 
 #[cfg(test)]
@@ -153,9 +115,9 @@ mod tests {
             "v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^",
         ];
         let lines: Vec<String> = lines.into_iter().map(|s| s.to_string()).collect();
-        let (mut map, moves, initial_position) = parse(&lines);
+        let (mut map, moves) = map::parse(&lines);
 
-        let result = sum_of_gps_coords(&mut map, &moves, initial_position);
+        let result = sum_of_gps_coords(&mut map, &moves);
 
         assert_eq!(result, 10092);
     }
@@ -175,13 +137,66 @@ mod tests {
             "<^^>>>vv<v>>v<<",
         ];
         let lines: Vec<String> = lines.into_iter().map(|s| s.to_string()).collect();
-        let (mut map, moves, initial_position) = parse(&lines);
+        let (mut map, moves) = map::parse(&lines);
 
-        let result = sum_of_gps_coords(&mut map, &moves, initial_position);
+        let result = sum_of_gps_coords(&mut map, &moves);
 
         assert_eq!(result, 2028);
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "##########",
+            "#..O..O.O#",
+            "#......O.#",
+            "#.OO..O.O#",
+            "#..O@..O.#",
+            "#O#..O...#",
+            "#O..O..O.#",
+            "#.OO.O.OO#",
+            "#....O...#",
+            "##########",
+            "",
+            "<vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^",
+            "vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v",
+            "><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<",
+            "<<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^",
+            "^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><",
+            "^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^",
+            ">^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^",
+            "<><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>",
+            "^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>",
+            "v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.to_string()).collect();
+        let (map, moves) = map::parse(&lines);
+        let mut wide_map = map::widen(&map);
+
+        let result = sum_of_gps_coords(&mut wide_map, &moves);
+
+        assert_eq!(result, 9021);
+    }
+
+    #[test]
+    fn sample_input_part_2_smaller_example() {
+        let lines = vec![
+            "#######",
+            "#...#.#",
+            "#.....#",
+            "#..OO@#",
+            "#..O..#",
+            "#.....#",
+            "#######",
+            "",
+            "<vv<<^^<<^^",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.to_string()).collect();
+        let (map, moves) = map::parse(&lines);
+        let mut wide_map = map::widen(&map);
+
+        let result = sum_of_gps_coords(&mut wide_map, &moves);
+
+        assert_eq!(result, 618);
+    }
 }
