@@ -1,7 +1,8 @@
 use std::env;
 
 use advent_of_code_2024::{
-    day1, day10, day11, day12, day13, day14, day15, day2, day3, day4, day5, day6, day7, day8, day9,
+    day1, day10, day11, day12, day13, day14, day15, day16, day2, day3, day4, day5, day6, day7,
+    day8, day9,
 };
 
 fn parse_command_line_args() -> (u32, u32) {
@@ -49,6 +50,8 @@ fn run(day: u32, part: u32) -> u32 {
         (14, 2) => day14::part2,
         (15, 1) => day15::part1,
         (15, 2) => day15::part2,
+        (16, 1) => day16::part1,
+        (16, 2) => day16::part2,
         _ => panic!("No solution yet for day {} and part {}", day, part),
     };
     solution()
