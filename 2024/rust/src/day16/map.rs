@@ -18,12 +18,3 @@ pub fn position(map: &Vec<Vec<char>>, char: char) -> (usize, usize) {
     }
     position
 }
-
-// pub fn print(map: &Vec<Vec<char>>) {
-//     for row in map {
-//         for c in row {
-//             print!("{}", c);
-//         }
-//         println!("");
-//     }
-// }
