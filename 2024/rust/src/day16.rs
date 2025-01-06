@@ -42,23 +42,31 @@ fn lowest_score(map: &Vec<Vec<char>>) -> u32 {
     let start_position = map::position(map, 'S');
     let end_position = map::position(map, 'E');
 
+    shortest_path(map, start_position, end_position)
+        .unwrap()
+        .cost as u32
+}
+
+fn shortest_path(map: &Vec<Vec<char>>, start: (usize, usize), end: (usize, usize)) -> Option<Path> {
     let mut visited = HashSet::new();
     let mut search_heap = BinaryHeap::new();
     search_heap.push(Path {
         cost: 0,
-        position: start_position,
+        position: start,
         direction: (1, 0),
     });
 
     let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-    while let Some(Path {
-        cost: current_cost,
-        position,
-        direction: current_direction,
-    }) = search_heap.pop()
+    while let Some(
+        path @ Path {
+            cost: current_cost,
+            position,
+            direction: current_direction,
+        },
+    ) = search_heap.pop()
     {
-        if position == end_position {
-            return current_cost as u32;
+        if position == end {
+            return Some(path);
         }
 
         let (x, y) = position;
@@ -85,7 +93,7 @@ fn lowest_score(map: &Vec<Vec<char>>) -> u32 {
         }
     }
 
-    0
+    None
 }
 
 #[cfg(test)]
