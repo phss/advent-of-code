@@ -1,12 +1,4 @@
-mod ops;
-use crate::day17::Instruction::{Bst, Out};
-
 type Registers = (usize, usize, usize);
-
-enum Instruction {
-    Bst(usize),
-    Out(usize),
-}
 
 pub fn part1() -> u32 {
     0
@@ -17,35 +9,28 @@ pub fn part2() -> u32 {
 }
 
 fn interpret(program: &Vec<usize>, registers: &mut Registers) -> Vec<usize> {
-    let instructions = parse(program);
-    let mut output = Vec::new();
-
-    for instruction in instructions {
-        match instruction {
-            Bst(combo_operand) => registers.1 = ops::mod8(value_of(combo_operand, &registers)),
-            Out(combo_operand) => output.push(ops::mod8(value_of(combo_operand, &registers))),
-        }
-    }
-
-    output
-}
-fn parse(program: &Vec<usize>) -> Vec<Instruction> {
-    let mut instructions = Vec::new();
     let mut instruction_pointer = 0;
+    let mut output = Vec::new();
 
     while instruction_pointer < program.len() {
         let opcode = program[instruction_pointer];
-        let combo_operand = program[instruction_pointer + 1];
+        let operand = program[instruction_pointer + 1];
         instruction_pointer += 2;
 
         match opcode {
-            2 => instructions.push(Bst(combo_operand)),
-            5 => instructions.push(Out(combo_operand)),
+            0 => registers.0 = div(registers.0, value_of(operand, &registers)),
+            2 => registers.1 = mod8(value_of(operand, &registers)),
+            3 => {
+                if registers.0 != 0 {
+                    instruction_pointer = operand
+                }
+            }
+            5 => output.push(mod8(value_of(operand, &registers))),
             _ => panic!("Opcode {opcode} not supported"),
         }
     }
 
-    instructions
+    output
 }
 
 fn value_of(combo_operand: usize, registers: &Registers) -> usize {
@@ -56,6 +41,15 @@ fn value_of(combo_operand: usize, registers: &Registers) -> usize {
         6 => registers.2,
         _ => panic!("Combo operand {combo_operand} not supported"),
     }
+}
+
+pub fn div(numerator: usize, value: usize) -> usize {
+    let denominator = 2_usize.pow(value as u32);
+    numerator / denominator
+}
+
+pub fn mod8(value: usize) -> usize {
+    value.rem_euclid(8)
 }
 
 #[cfg(test)]
@@ -85,6 +79,12 @@ mod tests {
         registers = (10, 0, 0);
         let output = interpret(&vec![5, 0, 5, 1, 5, 4], &mut registers);
         assert_eq!(output, vec![0, 1, 2]);
+
+        // If register A contains 2024, the program 0,1,5,4,3,0 would output 4,2,5,6,7,7,7,7,3,1,0 and leave 0 in register A.
+        registers = (2024, 0, 0);
+        let output = interpret(&vec![0, 1, 5, 4, 3, 0], &mut registers);
+        assert_eq!(output, vec![4, 2, 5, 6, 7, 7, 7, 7, 3, 1, 0]);
+        assert_eq!(registers.0, 0);
     }
 
     #[test]
