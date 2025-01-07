@@ -12,7 +12,7 @@ pub fn part2() -> u32 {
 
 fn interpret(program: &Vec<usize>, registers: &mut Registers) -> Vec<usize> {
     let mut instruction_pointer = 0;
-    let ouptut = Vec::new();
+    let mut output = Vec::new();
 
     while instruction_pointer < program.len() {
         let opcode = program[instruction_pointer];
@@ -20,12 +20,13 @@ fn interpret(program: &Vec<usize>, registers: &mut Registers) -> Vec<usize> {
         instruction_pointer += 2;
 
         match opcode {
-            2 => registers.1 = ops::bst(value_of(combo_operand, &registers)),
+            2 => registers.1 = ops::mod8(value_of(combo_operand, &registers)),
+            5 => output.push(ops::mod8(value_of(combo_operand, &registers))),
             _ => panic!("Opcode {opcode} not supported"),
         }
     }
 
-    ouptut
+    output
 }
 
 fn value_of(combo_operand: usize, registers: &Registers) -> usize {
@@ -60,6 +61,11 @@ mod tests {
         let mut registers = (0, 0, 9);
         let _ = interpret(&vec![2, 6], &mut registers);
         assert_eq!(registers.1, 1);
+
+        // If register A contains 10, the program 5,0,5,1,5,4 would output 0,1,2.
+        registers = (10, 0, 0);
+        let output = interpret(&vec![5, 0, 5, 1, 5, 4], &mut registers);
+        assert_eq!(output, vec![0, 1, 2]);
     }
 
     #[test]
