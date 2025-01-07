@@ -1,3 +1,5 @@
+use std::ops::BitXor;
+
 type Registers = (usize, usize, usize);
 
 pub fn part1() -> u32 {
@@ -19,6 +21,7 @@ fn interpret(program: &Vec<usize>, registers: &mut Registers) -> Vec<usize> {
 
         match opcode {
             0 => registers.0 = div(registers.0, value_of(operand, &registers)),
+            1 => registers.1 = bitwise_xor(registers.1, operand),
             2 => registers.1 = mod8(value_of(operand, &registers)),
             3 => {
                 if registers.0 != 0 {
@@ -46,6 +49,10 @@ fn value_of(combo_operand: usize, registers: &Registers) -> usize {
 pub fn div(numerator: usize, value: usize) -> usize {
     let denominator = 2_usize.pow(value as u32);
     numerator / denominator
+}
+
+pub fn bitwise_xor(a: usize, b: usize) -> usize {
+    a.bitxor(b)
 }
 
 pub fn mod8(value: usize) -> usize {
@@ -85,6 +92,11 @@ mod tests {
         let output = interpret(&vec![0, 1, 5, 4, 3, 0], &mut registers);
         assert_eq!(output, vec![4, 2, 5, 6, 7, 7, 7, 7, 3, 1, 0]);
         assert_eq!(registers.0, 0);
+
+        // If register B contains 29, the program 1,7 would set register B to 26.
+        registers = (0, 29, 0);
+        let _ = interpret(&vec![1, 7], &mut registers);
+        assert_eq!(registers.1, 26);
     }
 
     #[test]
