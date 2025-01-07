@@ -28,7 +28,10 @@ fn interpret(program: &Vec<usize>, registers: &mut Registers) -> Vec<usize> {
                     instruction_pointer = operand
                 }
             }
+            4 => registers.1 = bitwise_xor(registers.1, registers.2),
             5 => output.push(mod8(value_of(operand, &registers))),
+            6 => registers.1 = div(registers.0, value_of(operand, &registers)),
+            7 => registers.2 = div(registers.0, value_of(operand, &registers)),
             _ => panic!("Opcode {opcode} not supported"),
         }
     }
@@ -97,6 +100,11 @@ mod tests {
         registers = (0, 29, 0);
         let _ = interpret(&vec![1, 7], &mut registers);
         assert_eq!(registers.1, 26);
+
+        // If register B contains 2024 and register C contains 43690, the program 4,0 would set register B to 44354.
+        registers = (0, 2024, 43690);
+        let _ = interpret(&vec![4, 0], &mut registers);
+        assert_eq!(registers.1, 44354);
     }
 
     #[test]
