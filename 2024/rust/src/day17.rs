@@ -1,6 +1,12 @@
 mod ops;
+use crate::day17::Instruction::{Bst, Out};
 
 type Registers = (usize, usize, usize);
+
+enum Instruction {
+    Bst(usize),
+    Out(usize),
+}
 
 pub fn part1() -> u32 {
     0
@@ -11,8 +17,21 @@ pub fn part2() -> u32 {
 }
 
 fn interpret(program: &Vec<usize>, registers: &mut Registers) -> Vec<usize> {
-    let mut instruction_pointer = 0;
+    let instructions = parse(program);
     let mut output = Vec::new();
+
+    for instruction in instructions {
+        match instruction {
+            Bst(combo_operand) => registers.1 = ops::mod8(value_of(combo_operand, &registers)),
+            Out(combo_operand) => output.push(ops::mod8(value_of(combo_operand, &registers))),
+        }
+    }
+
+    output
+}
+fn parse(program: &Vec<usize>) -> Vec<Instruction> {
+    let mut instructions = Vec::new();
+    let mut instruction_pointer = 0;
 
     while instruction_pointer < program.len() {
         let opcode = program[instruction_pointer];
@@ -20,13 +39,13 @@ fn interpret(program: &Vec<usize>, registers: &mut Registers) -> Vec<usize> {
         instruction_pointer += 2;
 
         match opcode {
-            2 => registers.1 = ops::mod8(value_of(combo_operand, &registers)),
-            5 => output.push(ops::mod8(value_of(combo_operand, &registers))),
+            2 => instructions.push(Bst(combo_operand)),
+            5 => instructions.push(Out(combo_operand)),
             _ => panic!("Opcode {opcode} not supported"),
         }
     }
 
-    output
+    instructions
 }
 
 fn value_of(combo_operand: usize, registers: &Registers) -> usize {
