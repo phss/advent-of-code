@@ -13,7 +13,33 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
+    let program = vec![2, 4, 1, 5, 7, 5, 1, 6, 0, 3, 4, 0, 5, 5, 3, 0];
+    let a_value = find_lowest_a(&program);
+    println!("Result: {:?}", a_value);
     0
+}
+
+fn find_lowest_a(program: &Vec<usize>) -> usize {
+    let mut a_values = vec![0];
+
+    for digit in program.iter().rev() {
+        let mut new_avalues = vec![];
+
+        while let Some(a_value) = a_values.pop() {
+            for candidate in 0..8 {
+                let a_value = a_value * 8 + candidate;
+                let output = interpret(&program, &mut (a_value, 0, 0));
+                if output.first().unwrap() == digit {
+                    new_avalues.push(a_value);
+                }
+            }
+        }
+
+        a_values = new_avalues.clone();
+    }
+
+    a_values.sort();
+    *a_values.first().unwrap()
 }
 
 fn interpret(program: &Vec<usize>, registers: &mut Registers) -> Vec<usize> {
@@ -114,5 +140,11 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let program = vec![0, 3, 5, 4, 3, 0];
+
+        let result = find_lowest_a(&program);
+
+        assert_eq!(result, 117440);
+    }
 }
