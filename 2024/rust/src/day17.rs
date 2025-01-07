@@ -1,8 +1,14 @@
 use std::ops::BitXor;
 
+use itertools::Itertools;
+
 type Registers = (usize, usize, usize);
 
 pub fn part1() -> u32 {
+    let mut registers = (24847151, 0, 0);
+    let program = vec![2, 4, 1, 5, 7, 5, 1, 6, 0, 3, 4, 0, 5, 5, 3, 0];
+    let result = interpret(&program, &mut registers);
+    println!("Result: {:?}", result.iter().join(","));
     0
 }
 
