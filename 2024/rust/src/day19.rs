@@ -1,19 +1,31 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::parser;
 
 struct Solver {
     patterns: HashSet<String>,
     max_pattern_size: usize,
+    cache: HashMap<usize, bool>,
 }
 
 impl Solver {
-    fn is_valid_design(&self, start: usize, towel: &String) -> bool {
+    fn new(patterns: &HashSet<String>) -> Self {
+        let max_pattern_size = patterns.iter().map(String::len).max().unwrap_or(0);
+        Solver {
+            patterns: patterns.clone(),
+            max_pattern_size,
+            cache: HashMap::new(),
+        }
+    }
+
+    fn is_valid_design(&mut self, start: usize, towel: &String) -> bool {
         if start >= towel.len() {
             return true;
+        } else if self.cache.contains_key(&start) {
+            return *self.cache.get(&start).unwrap();
         }
 
-        (1..=self.max_pattern_size).rev().any(|size| {
+        let result = (1..=self.max_pattern_size).rev().any(|size| {
             let end = start + size;
             if end <= towel.len() {
                 let sub_towel = &towel[start..end];
@@ -21,7 +33,10 @@ impl Solver {
             } else {
                 false
             }
-        })
+        });
+        self.cache.insert(start, result);
+
+        result
     }
 }
 
@@ -36,14 +51,9 @@ pub fn part2() -> u32 {
 }
 
 fn possible_designs(patterns: &HashSet<String>, towels: &Vec<String>) -> usize {
-    let max_pattern_size = patterns.iter().map(String::len).max().unwrap();
-    let solver = Solver {
-        patterns: patterns.clone(),
-        max_pattern_size,
-    };
     towels
         .iter()
-        .filter(|towel| solver.is_valid_design(0, towel))
+        .filter(|towel| Solver::new(patterns).is_valid_design(0, towel))
         .count()
 }
 
@@ -77,13 +87,13 @@ mod tests {
             "r, wr, b, g, bwu, rb, gb, br",
             "",
             "brwrr",
-            // "bggr",
-            // "gbbr",
-            // "rrbgbr",
-            // "ubwu",
-            // "bwurrg",
-            // "brgr",
-            // "bbrgwb",
+            "bggr",
+            "gbbr",
+            "rrbgbr",
+            "ubwu",
+            "bwurrg",
+            "brgr",
+            "bbrgwb",
         ];
         let lines: Vec<String> = lines.into_iter().map(|s| s.to_string()).collect();
         let (patterns, towels) = parse(&lines);
