@@ -9,6 +9,10 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
+    let lines: Vec<String> = parser::read("data/day18.txt").unwrap();
+    let bytes = parse(&lines);
+    let result = first_byte_to_block(&bytes, (71, 71));
+    println!("Result {:?}", result);
     0
 }
 
@@ -25,13 +29,41 @@ fn parse(lines: &Vec<String>) -> Vec<(usize, usize)> {
 fn minimum_steps(
     bytes: &Vec<(usize, usize)>,
     bytes_fall: usize,
-    (width, height): (usize, usize),
+    dimensions @ (width, height): (usize, usize),
 ) -> u32 {
-    let map = map_after_byte_fall(bytes, bytes_fall, (width, height));
+    let map = map_after_byte_fall(bytes, bytes_fall, dimensions);
     let start = (0, 0);
     let end = (width - 1, height - 1);
-    let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
+    shortest_path(&map, start, end, dimensions)
+}
+
+fn first_byte_to_block(
+    bytes: &Vec<(usize, usize)>,
+    dimensions @ (width, height): (usize, usize),
+) -> (usize, usize) {
+    let mut map = vec![vec!['.'; width]; height];
+    let start = (0, 0);
+    let end = (width - 1, height - 1);
+
+    for byte @ (x, y) in bytes {
+        map[*y][*x] = '#';
+
+        if shortest_path(&map, start, end, dimensions) == 0 {
+            return *byte;
+        }
+    }
+
+    (0, 0)
+}
+
+fn shortest_path(
+    map: &Vec<Vec<char>>,
+    start: (usize, usize),
+    end: (usize, usize),
+    (width, height): (usize, usize),
+) -> u32 {
+    let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
     let mut visited = HashSet::new();
     let mut search_queue = VecDeque::new();
     search_queue.push_back((start, 0));
@@ -96,5 +128,17 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "5,4", "4,2", "4,5", "3,0", "2,1", "6,3", "2,4", "1,5", "0,6", "3,3", "2,6", "5,1",
+            "1,2", "5,5", "2,5", "6,5", "1,4", "0,4", "6,4", "1,1", "6,1", "1,0", "0,5", "1,6",
+            "2,0",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.to_string()).collect();
+        let bytes = parse(&lines);
+
+        let result = first_byte_to_block(&bytes, (7, 7));
+
+        assert_eq!(result, (6, 1));
+    }
 }
