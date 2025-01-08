@@ -4,7 +4,7 @@ use std::collections::{HashSet, VecDeque};
 use crate::parser;
 
 pub fn part1() -> u32 {
-    let lines: Vec<String> = parser::read("data/day15.txt").unwrap();
+    let lines: Vec<String> = parser::read("data/day20.txt").unwrap();
     let map = map::parse(&lines);
     count_cheats(&map, 100) as u32
 }
@@ -13,13 +13,25 @@ pub fn part2() -> u32 {
     0
 }
 
-fn count_cheats(map: &Vec<Vec<char>>, time_saved: usize) -> u32 {
-    let count = 0;
+fn count_cheats(map: &Vec<Vec<char>>, time_saved: u32) -> u32 {
+    let mut count = 0;
     let start = map::position(map, 'S');
     let end = map::position(map, 'E');
     let shortest_path_without_cheats = shortest_path(map, start, end);
 
-    println!("{:?}", shortest_path_without_cheats);
+    for y in 1..map.len() - 1 {
+        for x in 1..map[y].len() - 1 {
+            if map[y][x] == '#' {
+                let mut cheated_map = map.clone();
+                cheated_map[y][x] = 'x';
+                let cheated_shortest_path = shortest_path(&cheated_map, start, end);
+                if (shortest_path_without_cheats - cheated_shortest_path) >= time_saved {
+                    count += 1;
+                }
+                println!("{:?} -> {}", (x, y), count);
+            }
+        }
+    }
 
     count
 }
