@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 #[derive(Debug)]
 pub struct Keypad {
     inputs_map: HashMap<char, HashMap<char, Vec<String>>>,
+    cache: HashMap<(String, usize), usize>,
 }
 
 impl Keypad {
@@ -30,7 +31,10 @@ impl Keypad {
             }
         }
 
-        Self { inputs_map }
+        Self {
+            inputs_map,
+            cache: HashMap::new(),
+        }
     }
 
     fn inputs_from(raw: &Vec<Vec<char>>, start: (usize, usize)) -> HashMap<char, Vec<String>> {
@@ -103,11 +107,42 @@ impl Keypad {
             from = to;
         }
 
+        let smallest = instructions.iter().map(String::len).min().unwrap();
         instructions
+            .iter()
+            .filter(|s| s.len() == smallest)
+            .cloned()
+            .collect()
+
+        // instructions
     }
 
     fn inputs(&self, from: &char, to: &char) -> &Vec<String> {
         self.inputs_map.get(from).unwrap().get(to).unwrap()
+    }
+
+    pub fn minimum_length_of(&mut self, instruction: &String, depth: usize) -> usize {
+        if depth == 0 {
+            return instruction.len();
+        }
+
+        let cache_key = (instruction.clone(), depth);
+        if let Some(length) = self.cache.get(&cache_key) {
+            return *length;
+        }
+
+        let mut length = 0;
+        for sub_instruction in instruction.split_inclusive("A") {
+            length += self
+                .shortest_instructions(&sub_instruction.to_string())
+                .iter()
+                .map(|i| self.minimum_length_of(i, depth - 1))
+                .min()
+                .unwrap();
+        }
+
+        self.cache.insert(cache_key, length);
+        length
     }
 }
 
