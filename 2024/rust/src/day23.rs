@@ -1,4 +1,9 @@
-use std::str::FromStr;
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
+
+use itertools::Itertools;
 
 use crate::parser;
 
@@ -32,7 +37,39 @@ pub fn part2() -> u32 {
 }
 
 fn count_groups_with_t(connections: &Vec<Connection>) -> usize {
-    0
+    let mut conn_map = HashMap::new();
+    for conn in connections {
+        conn_map
+            .entry(conn.a.clone())
+            .or_insert(HashSet::new())
+            .insert(conn.b.clone());
+        conn_map
+            .entry(conn.b.clone())
+            .or_insert(HashSet::new())
+            .insert(conn.a.clone());
+    }
+
+    let mut t_sets = HashSet::new();
+    for (computer, connections) in conn_map.clone() {
+        if !computer.starts_with("t") {
+            continue;
+        }
+
+        for conn in connections.into_iter().combinations(2) {
+            let a = conn.first().unwrap();
+            let b = conn.last().unwrap();
+
+            if conn_map.get(a).unwrap().contains(b) {
+                let key: String = vec![computer.clone(), a.clone(), b.clone()]
+                    .iter()
+                    .sorted()
+                    .join("-");
+                t_sets.insert(key);
+            }
+        }
+    }
+
+    t_sets.len()
 }
 
 #[cfg(test)]
