@@ -1,4 +1,9 @@
-use std::ops::BitXor;
+use std::{
+    collections::{HashMap, HashSet},
+    ops::BitXor,
+};
+
+use itertools::Itertools;
 
 use crate::parser;
 
@@ -13,9 +18,7 @@ pub fn part1() -> u32 {
 pub fn part2() -> u32 {
     let lines: Vec<String> = parser::read("data/day22.txt").unwrap();
     let secret_numbers = lines.iter().map(|s| s.parse().unwrap()).collect();
-    let result = most_bananas(&secret_numbers);
-    println!("Result {result}");
-    result as u32
+    most_bananas(&secret_numbers) as u32
 }
 
 fn sum_of_2000th_secret_numbers(secret_numbers: &mut Vec<usize>) -> usize {
@@ -29,7 +32,40 @@ fn sum_of_2000th_secret_numbers(secret_numbers: &mut Vec<usize>) -> usize {
 }
 
 fn most_bananas(secret_numbers: &Vec<usize>) -> usize {
-    0
+    let mut bananas_per_changes = HashMap::new();
+
+    for initial in secret_numbers {
+        let (prices, price_changes) = price_analysis(*initial, 2001);
+        let mut ocurred = HashSet::new();
+
+        for (i, blah) in price_changes.windows(4).enumerate() {
+            let change_set = blah.into_iter().cloned().collect_vec();
+            if ocurred.contains(&change_set) {
+                continue;
+            }
+
+            let price = prices[i + 4];
+            *bananas_per_changes.entry(change_set.clone()).or_insert(0) += price;
+            ocurred.insert(change_set);
+        }
+    }
+
+    *bananas_per_changes.values().max().unwrap()
+}
+
+fn price_analysis(initial: usize, times: usize) -> (Vec<usize>, Vec<isize>) {
+    let mut prices = Vec::new();
+    let mut price_changes = Vec::new();
+    let mut secret_number = initial;
+
+    prices.push(price(secret_number));
+    for i in 1..times {
+        secret_number = evolve(secret_number);
+        prices.push(price(secret_number));
+        price_changes.push(prices[i] as isize - prices[i - 1] as isize);
+    }
+
+    (prices, price_changes)
 }
 
 fn evolve(secret_number: usize) -> usize {
@@ -65,7 +101,7 @@ mod tests {
 
     #[test]
     fn sample_input_part_2() {
-        let secret_numbers = vec![1, 10, 100, 2024];
+        let secret_numbers = vec![1, 2, 3, 2024];
 
         let result = most_bananas(&secret_numbers);
 
@@ -88,15 +124,10 @@ mod tests {
     }
 
     #[test]
-    fn test_price() {
-        let mut secret_number = 123;
-        let expected_evolution = vec![0, 6, 5, 4, 4, 6, 4, 4, 2];
+    fn test_price_analysis() {
+        let (prices, price_changes) = price_analysis(123, 10);
 
-        for expected in expected_evolution {
-            let evolved = evolve(secret_number);
-            let price = price(evolved);
-            assert_eq!(price, expected);
-            secret_number = evolved;
-        }
+        assert_eq!(prices, vec![3, 0, 6, 5, 4, 4, 6, 4, 4, 2]);
+        assert_eq!(price_changes, vec![-3, 6, -1, -1, 0, 2, -2, 0, -2]);
     }
 }
