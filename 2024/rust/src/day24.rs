@@ -3,6 +3,8 @@ use std::{
     ops::{BitAnd, BitOr, BitXor},
 };
 
+use itertools::Itertools;
+
 use crate::parser;
 
 type Operation = (String, String, String, String);
@@ -65,6 +67,90 @@ impl Simulator {
             _ => panic!("not supported"),
         }
     }
+
+    // val wrong4 = gates.values.filter { gate ->
+    //     if ((gate.lhs.contains('x') || gate.rhs.contains('x') || gate.lhs.contains('y') || gate.rhs.contains('y')) && gate.op == "AND") {
+    //         gates.values.none { (it.lhs == gate.res || it.rhs == gate.res) && it.op == "OR" }
+    //     } else false
+    // }.filter { !it.lhs.contains("00") }
+
+    fn detect_wrong_gates(&self) -> Vec<String> {
+        let a: Vec<String> = self
+            .operations
+            .values()
+            .filter(|(op, _, _, output)| op != "XOR" && output.starts_with("z") && output != "z45")
+            .map(|(_, _, _, output)| output.clone())
+            .collect();
+
+        let b: Vec<String> = self
+            .operations
+            .values()
+            .filter(|(op, a, b, output)| {
+                op == "XOR"
+                    && !output.starts_with("z")
+                    && !a.starts_with("x")
+                    && !a.starts_with("y")
+                    && !b.starts_with("x")
+                    && !b.starts_with("y")
+            })
+            .map(|(_, _, _, output)| output.clone())
+            .collect();
+
+        let c: Vec<String> = self
+            .operations
+            .values()
+            .filter(|(op, a, b, output)| {
+                if op == "XOR"
+                    && !a.ends_with("00")
+                    && (a.starts_with("x")
+                        || a.starts_with("y")
+                        || b.starts_with("x")
+                        || b.starts_with("y"))
+                {
+                    !self
+                        .operations
+                        .values()
+                        .any(|(other_op, other_a, other_b, _)| {
+                            other_op == "XOR" && (other_a == output || other_b == output)
+                        })
+                } else {
+                    false
+                }
+            })
+            .map(|(_, _, _, output)| output.clone())
+            .collect();
+
+        let d: Vec<String> = self
+            .operations
+            .values()
+            .filter(|(op, a, b, output)| {
+                if op == "AND"
+                    && !a.ends_with("00")
+                    && (a.starts_with("x")
+                        || a.starts_with("y")
+                        || b.starts_with("x")
+                        || b.starts_with("y"))
+                {
+                    !self
+                        .operations
+                        .values()
+                        .any(|(other_op, other_a, other_b, _)| {
+                            other_op == "OR" && (other_a == output || other_b == output)
+                        })
+                } else {
+                    false
+                }
+            })
+            .map(|(_, _, _, output)| output.clone())
+            .collect();
+
+        let mut result = Vec::new();
+        result.extend(a);
+        result.extend(b);
+        result.extend(c);
+        result.extend(d);
+        result
+    }
 }
 
 pub fn part1() -> u32 {
@@ -76,6 +162,10 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
+    let lines: Vec<String> = parser::read("data/day24.txt").unwrap();
+    let simulator = Simulator::parse(&lines);
+    let result = simulator.detect_wrong_gates().iter().sorted().join(",");
+    println!("Result {result}");
     0
 }
 
