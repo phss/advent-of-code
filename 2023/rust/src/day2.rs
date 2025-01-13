@@ -58,7 +58,8 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
-    0
+    let games: Vec<Game> = parser::read("data/day2.txt").unwrap();
+    sum_of_powers(&games) as u32
 }
 
 fn count_possible_games(games: &Vec<Game>) -> usize {
@@ -70,6 +71,23 @@ fn count_possible_games(games: &Vec<Game>) -> usize {
                 .all(|(r, g, b)| *r <= 12 && *g <= 13 && *b <= 14)
         })
         .map(|game| game.id)
+        .sum()
+}
+
+fn sum_of_powers(games: &Vec<Game>) -> usize {
+    games
+        .iter()
+        .map(|game| {
+            let (mut max_r, mut max_g, mut max_b) = (0, 0, 0);
+
+            for (r, g, b) in &game.shows {
+                max_r = max_r.max(*r);
+                max_g = max_g.max(*g);
+                max_b = max_b.max(*b);
+            }
+
+            max_r * max_g * max_b
+        })
         .sum()
 }
 
@@ -94,5 +112,18 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green",
+            "Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue",
+            "Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red",
+            "Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red",
+            "Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green",
+        ];
+        let games: Vec<Game> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+
+        let result = sum_of_powers(&games);
+
+        assert_eq!(result, 2286)
+    }
 }
