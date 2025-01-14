@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use crate::parser;
 
 pub fn part1() -> u32 {
@@ -6,7 +8,8 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
-    0
+    let schematic: Vec<String> = parser::read("data/day3.txt").unwrap();
+    sum_gear_ratios(&schematic) as u32
 }
 
 fn sum_part_numbers(schematic: &Vec<String>) -> usize {
@@ -45,6 +48,68 @@ fn sum_part_numbers(schematic: &Vec<String>) -> usize {
                 }
                 sum += part_number.parse::<usize>().unwrap();
             }
+        }
+    }
+
+    sum
+}
+
+fn sum_gear_ratios(schematic: &Vec<String>) -> usize {
+    let directions: Vec<(isize, isize)> = vec![
+        (1, 0),
+        (1, 1),
+        (0, 1),
+        (-1, 1),
+        (-1, 0),
+        (-1, -1),
+        (0, -1),
+        (1, -1),
+    ];
+    let width = schematic[0].len();
+    let height = schematic.len();
+    let mut sum = 0;
+
+    let mut mults = HashMap::new();
+    for (y, line) in schematic.iter().enumerate() {
+        let candidates = digits_from(line);
+
+        for candidate in candidates {
+            let mut part_number = String::new();
+            for (_, c) in &candidate {
+                part_number.push(*c);
+            }
+            let part_number = part_number.parse::<usize>().unwrap();
+
+            let candidate_mults: Vec<(usize, usize)> = candidate
+                .iter()
+                .flat_map(|(x, _)| {
+                    directions
+                        .iter()
+                        .map(|(dir_x, dir_y)| {
+                            (
+                                x.checked_add_signed(*dir_x).unwrap_or(0).min(width - 1),
+                                y.checked_add_signed(*dir_y).unwrap_or(0).min(height - 1),
+                            )
+                        })
+                        .filter(|(new_x, new_y)| {
+                            schematic[*new_y].chars().nth(*new_x).unwrap() == '*'
+                        })
+                })
+                .collect();
+
+            for mult in candidate_mults {
+                mults
+                    .entry(mult)
+                    .or_insert(HashSet::new())
+                    .insert(part_number);
+            }
+        }
+    }
+
+    for (_, part_numbers) in mults {
+        if part_numbers.len() == 2 {
+            let mut part_numbers = part_numbers.iter();
+            sum += part_numbers.next().unwrap() * part_numbers.next().unwrap();
         }
     }
 
@@ -100,5 +165,23 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let schematic = vec![
+            "467..114..",
+            "...*......",
+            "..35..633.",
+            "......#...",
+            "617*......",
+            ".....+.58.",
+            "..592.....",
+            "......755.",
+            "...$.*....",
+            ".664.598..",
+        ];
+        let schematic: Vec<String> = schematic.into_iter().map(|s| s.parse().unwrap()).collect();
+
+        let result = sum_gear_ratios(&schematic);
+
+        assert_eq!(result, 467835);
+    }
 }
