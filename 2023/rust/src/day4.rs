@@ -39,7 +39,8 @@ pub fn part1() -> u32 {
 }
 
 pub fn part2() -> u32 {
-    0
+    let cards: Vec<Card> = parser::read("data/day4.txt").unwrap();
+    total_cards(&cards) as u32
 }
 
 fn count_points(cards: &Vec<Card>) -> usize {
@@ -56,6 +57,22 @@ fn count_points(cards: &Vec<Card>) -> usize {
     }
 
     count
+}
+
+fn total_cards(cards: &Vec<Card>) -> usize {
+    let mut totals = vec![1; cards.len()];
+
+    for (i, card) in cards.iter().enumerate() {
+        let winning: HashSet<usize> = HashSet::from_iter(card.winning_numbers.clone());
+        let ours: HashSet<usize> = HashSet::from_iter(card.card_numbers.clone());
+        let overlap = winning.intersection(&ours).count();
+
+        for j in 1..=overlap {
+            totals[i + j] += totals[i];
+        }
+    }
+
+    totals.iter().sum()
 }
 
 #[cfg(test)]
@@ -80,5 +97,19 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53",
+            "Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19",
+            "Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1",
+            "Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83",
+            "Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36",
+            "Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11",
+        ];
+        let cards: Vec<Card> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+
+        let result = total_cards(&cards);
+
+        assert_eq!(result, 30)
+    }
 }
