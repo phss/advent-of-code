@@ -52,14 +52,14 @@ impl FromStr for Game {
     }
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let games: Vec<Game> = parser::read("data/day2.txt").unwrap();
-    count_possible_games(&games) as u32
+    count_possible_games(&games)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let games: Vec<Game> = parser::read("data/day2.txt").unwrap();
-    sum_of_powers(&games) as u32
+    sum_of_powers(&games)
 }
 
 fn count_possible_games(games: &Vec<Game>) -> usize {

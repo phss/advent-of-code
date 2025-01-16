@@ -33,14 +33,14 @@ impl FromStr for Card {
     }
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let cards: Vec<Card> = parser::read("data/day4.txt").unwrap();
-    count_points(&cards) as u32
+    count_points(&cards)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let cards: Vec<Card> = parser::read("data/day4.txt").unwrap();
-    total_cards(&cards) as u32
+    total_cards(&cards)
 }
 
 fn count_points(cards: &Vec<Card>) -> usize {

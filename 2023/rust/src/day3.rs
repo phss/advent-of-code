@@ -2,14 +2,14 @@ use std::collections::{HashMap, HashSet};
 
 use crate::parser;
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let schematic: Vec<String> = parser::read("data/day3.txt").unwrap();
-    sum_part_numbers(&schematic) as u32
+    sum_part_numbers(&schematic)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let schematic: Vec<String> = parser::read("data/day3.txt").unwrap();
-    sum_gear_ratios(&schematic) as u32
+    sum_gear_ratios(&schematic)
 }
 
 fn sum_part_numbers(schematic: &Vec<String>) -> usize {

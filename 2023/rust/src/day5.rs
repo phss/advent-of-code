@@ -4,18 +4,16 @@ use crate::parser;
 
 type Mapping = (usize, usize, usize);
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day5.txt").unwrap();
     let (seeds, all_mappings) = parse(&lines);
-    lowest_location(&seeds, &all_mappings) as u32
+    lowest_location(&seeds, &all_mappings)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day5.txt").unwrap();
     let (seeds, all_mappings) = parse(&lines);
-    let result = lowest_location_with_range(&seeds, &all_mappings);
-    println!("Result {:?}", result);
-    result as u32
+    lowest_location_with_range(&seeds, &all_mappings)
 }
 
 fn lowest_location(seeds: &Vec<usize>, all_mappings: &Vec<Vec<Mapping>>) -> usize {

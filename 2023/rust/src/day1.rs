@@ -2,14 +2,14 @@ use std::usize;
 
 use crate::parser;
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let doc: Vec<String> = parser::read("data/day1.txt").unwrap();
-    calibration_values(&doc) as u32
+    calibration_values(&doc)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let doc: Vec<String> = parser::read("data/day1.txt").unwrap();
-    calibration_values_with_str_number(&doc) as u32
+    calibration_values_with_str_number(&doc)
 }
 
 fn calibration_values(doc: &Vec<String>) -> usize {

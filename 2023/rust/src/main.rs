@@ -15,7 +15,7 @@ fn parse_command_line_args() -> (u32, u32) {
     }
 }
 
-fn run(day: u32, part: u32) -> u32 {
+fn run(day: u32, part: u32) -> usize {
     let solution = match (day, part) {
         (1, 1) => day1::part1,
         (1, 2) => day1::part2,
