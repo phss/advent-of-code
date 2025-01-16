@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use itertools::Itertools;
 
 use crate::parser;
 
@@ -19,35 +19,79 @@ pub fn part2() -> u32 {
 }
 
 fn lowest_location(seeds: &Vec<usize>, all_mappings: &Vec<Vec<Mapping>>) -> usize {
-    let mut locations = seeds.clone();
+    let mut seed_ranges = Vec::new();
 
-    for mappings in all_mappings {
-        locations = locations
-            .iter()
-            .map(|value| {
-                mappings
-                    .iter()
-                    .find(|(_, src, len)| value >= src && *value <= (src + len))
-                    .map(|(dst, src, _)| dst + *value - src)
-                    .unwrap_or(*value)
-            })
-            .collect();
+    for seed in seeds {
+        seed_ranges.push(*seed);
+        seed_ranges.push(1);
     }
 
-    *locations.iter().min().unwrap()
+    lowest_location_with_range(&seed_ranges, all_mappings)
 }
 
 fn lowest_location_with_range(seed_ranges: &Vec<usize>, all_mappings: &Vec<Vec<Mapping>>) -> usize {
-    let mut seeds = Vec::new();
+    let mut ranges = Vec::new();
 
-    for seed_range in seed_ranges.chunks(2) {
-        let start = seed_range[0];
-        let length = seed_range[1];
-
-        seeds.extend(start..start + length);
+    for chunk in seed_ranges.chunks(2) {
+        let start = chunk[0];
+        let length = chunk[1];
+        ranges.push((start, start + length - 1));
     }
 
-    lowest_location(&seeds, all_mappings)
+    let mut all_sorted_mappings = Vec::new();
+    for mappings in all_mappings {
+        let sorted_mappings: Vec<Mapping> = mappings
+            .clone()
+            .into_iter()
+            .sorted_by_key(|(_, src, _)| *src)
+            .collect();
+
+        let mut last_end = 0;
+        let mut new_sorted_mappings = Vec::new();
+        for mapping @ (_, src, length) in sorted_mappings {
+            if src > last_end {
+                new_sorted_mappings.push((last_end, last_end, src - last_end));
+            }
+
+            new_sorted_mappings.push(mapping);
+            last_end = src + length;
+        }
+        new_sorted_mappings.push((last_end, last_end, usize::MAX - last_end));
+
+        all_sorted_mappings.push(new_sorted_mappings);
+    }
+
+    lowest_with_ranges(&ranges, &all_sorted_mappings)
+}
+
+fn lowest_with_ranges(ranges: &Vec<(usize, usize)>, all_mappings: &Vec<Vec<Mapping>>) -> usize {
+    if all_mappings.is_empty() {
+        return *ranges.iter().map(|(low, _)| low).min().unwrap();
+    }
+
+    let (mappings, rest) = all_mappings.split_at(1);
+    let mappings = &mappings[0];
+    let rest = rest.to_vec();
+    let mut new_ranges = Vec::new();
+
+    for (range_start, range_end) in ranges {
+        for (dst, src, length) in mappings {
+            let mapping_start = src;
+            let mapping_end = src + length - 1;
+
+            if *range_start <= mapping_end && range_end >= mapping_start {
+                let overlap_start = range_start.max(mapping_start);
+                let overlap_end = range_end.min(&mapping_end);
+
+                let new_range_start = overlap_start - mapping_start + dst;
+                let new_range_end = overlap_end - mapping_start + dst;
+
+                new_ranges.push((new_range_start, new_range_end));
+            }
+        }
+    }
+
+    lowest_with_ranges(&new_ranges, &rest)
 }
 
 fn parse(lines: &Vec<String>) -> (Vec<usize>, Vec<Vec<Mapping>>) {
