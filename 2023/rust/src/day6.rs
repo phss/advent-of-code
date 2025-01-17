@@ -5,7 +5,9 @@ pub fn part1() -> usize {
 }
 
 pub fn part2() -> usize {
-    0
+    let times = vec![34908986];
+    let distances = vec![204171312101780];
+    mult_of_number_of_ways(&times, &distances)
 }
 
 fn mult_of_number_of_ways(times: &Vec<usize>, distances: &Vec<usize>) -> usize {
@@ -48,5 +50,12 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let times = vec![71530];
+        let distances = vec![940200];
+
+        let result = mult_of_number_of_ways(&times, &distances);
+
+        assert_eq!(result, 71503);
+    }
 }
