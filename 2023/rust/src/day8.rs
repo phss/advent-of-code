@@ -5,7 +5,7 @@ use crate::parser;
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day8.txt").unwrap();
     let (moves, network) = parse(&lines);
-    step_count(&moves, &network)
+    step_count(&"AAA".to_string(), &moves, &network)
 }
 
 pub fn part2() -> usize {
@@ -31,12 +31,16 @@ fn parse(lines: &Vec<String>) -> (Vec<char>, HashMap<String, (String, String)>) 
     (moves, network)
 }
 
-fn step_count(moves: &Vec<char>, network: &HashMap<String, (String, String)>) -> usize {
-    let mut node = "AAA".to_string();
+fn step_count(
+    initial: &String,
+    moves: &Vec<char>,
+    network: &HashMap<String, (String, String)>,
+) -> usize {
+    let mut node = initial.clone();
     let mut i = 0;
     let mut steps = 0;
 
-    while node != "ZZZ".to_string() {
+    while !node.ends_with("Z") {
         let (left, right) = network.get(&node).unwrap();
 
         node = if moves[i] == 'L' {
@@ -54,31 +58,34 @@ fn step_count(moves: &Vec<char>, network: &HashMap<String, (String, String)>) ->
 }
 
 fn step_count_multiple(moves: &Vec<char>, network: &HashMap<String, (String, String)>) -> usize {
-    let mut nodes: Vec<String> = network
+    let nodes: Vec<String> = network
         .keys()
         .filter(|node| node.ends_with("A"))
         .cloned()
         .collect();
-    let mut i = 0;
-    let mut steps = 0;
 
-    while nodes.iter().any(|node| !node.ends_with("Z")) {
-        nodes.iter_mut().for_each(|node| {
-            let (left, right) = network.get(node).unwrap();
+    let steps_to_z: Vec<usize> = nodes
+        .iter()
+        .map(|node| step_count(node, moves, network))
+        .collect();
 
-            *node = if moves[i] == 'L' {
-                left.clone()
-            } else {
-                right.clone()
-            };
-        });
+    lcm(&steps_to_z)
+}
 
-        i += 1;
-        i = i % moves.len();
-        steps += 1;
+fn lcm(nums: &[usize]) -> usize {
+    if nums.len() == 1 {
+        return nums[0];
     }
+    let a = nums[0];
+    let b = lcm(&nums[1..]);
+    a * b / gcd_of_two_numbers(a, b)
+}
 
-    steps
+fn gcd_of_two_numbers(a: usize, b: usize) -> usize {
+    if b == 0 {
+        return a;
+    }
+    gcd_of_two_numbers(b, a % b)
 }
 
 #[cfg(test)]
@@ -101,7 +108,7 @@ mod tests {
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
         let (moves, network) = parse(&lines);
 
-        let result = step_count(&moves, &network);
+        let result = step_count(&"AAA".to_string(), &moves, &network);
 
         assert_eq!(result, 2);
     }
@@ -118,7 +125,7 @@ mod tests {
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
         let (moves, network) = parse(&lines);
 
-        let result = step_count(&moves, &network);
+        let result = step_count(&"AAA".to_string(), &moves, &network);
 
         assert_eq!(result, 6);
     }
