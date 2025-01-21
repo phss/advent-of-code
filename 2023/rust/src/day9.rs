@@ -13,55 +13,42 @@ pub fn part2() -> usize {
 }
 
 fn sum_of_extrapolated(histories: &Vec<Vec<isize>>) -> usize {
+    let selector = |numbers: &Vec<isize>| numbers.iter().last().unwrap().clone();
+    let accumulator = |acc: isize, n: &isize| acc + n;
+
     histories
         .iter()
-        .map(extrapolate)
+        .map(|history| extrapolate(history, &selector, &accumulator))
         .reduce(|acc, n| acc + n)
         .unwrap() as usize
-}
-
-fn extrapolate(history: &Vec<isize>) -> isize {
-    let mut lasts = Vec::new();
-    let mut levels = history.clone();
-
-    while !levels.iter().all(|n| *n == 0) {
-        lasts.push(levels.iter().last().unwrap().clone());
-
-        levels = levels.windows(2).map(|ns| ns[1] - ns[0]).collect();
-    }
-
-    let mut extrapolated = 0;
-    while let Some(number) = lasts.pop() {
-        extrapolated += number;
-    }
-
-    extrapolated
 }
 
 fn sum_of_first_extrapolated(histories: &Vec<Vec<isize>>) -> usize {
+    let selector = |numbers: &Vec<isize>| numbers.first().unwrap().clone();
+    let accumulator = |acc: isize, n: &isize| n - acc;
+
     histories
         .iter()
-        .map(extrapolate_first)
+        .map(|history| extrapolate(history, &selector, &accumulator))
         .reduce(|acc, n| acc + n)
         .unwrap() as usize
 }
 
-fn extrapolate_first(history: &Vec<isize>) -> isize {
+fn extrapolate(
+    history: &Vec<isize>,
+    selector: &dyn Fn(&Vec<isize>) -> isize,
+    accumulator: &dyn Fn(isize, &isize) -> isize,
+) -> isize {
     let mut lasts = Vec::new();
     let mut levels = history.clone();
 
     while !levels.iter().all(|n| *n == 0) {
-        lasts.push(levels.first().unwrap().clone());
+        lasts.push(selector(&levels));
 
         levels = levels.windows(2).map(|ns| ns[1] - ns[0]).collect();
     }
 
-    let mut extrapolated = 0;
-    while let Some(number) = lasts.pop() {
-        extrapolated = number - extrapolated;
-    }
-
-    extrapolated
+    lasts.iter().rev().fold(0, accumulator)
 }
 
 fn parse(lines: &Vec<String>) -> Vec<Vec<isize>> {
