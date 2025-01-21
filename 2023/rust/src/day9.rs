@@ -3,12 +3,37 @@ use crate::parser;
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day9.txt").unwrap();
     let histories = parse(&lines);
-    // sum_of_extrapolated(&histories)
-    0
+    sum_of_extrapolated(&histories)
 }
 
 pub fn part2() -> usize {
     0
+}
+
+fn sum_of_extrapolated(histories: &Vec<Vec<isize>>) -> usize {
+    histories
+        .iter()
+        .map(extrapolate)
+        .reduce(|acc, n| acc + n)
+        .unwrap() as usize
+}
+
+fn extrapolate(history: &Vec<isize>) -> isize {
+    let mut lasts = Vec::new();
+    let mut levels = history.clone();
+
+    while !levels.iter().all(|n| *n == 0) {
+        lasts.push(levels.iter().last().unwrap().clone());
+
+        levels = levels.windows(2).map(|ns| ns[1] - ns[0]).collect();
+    }
+
+    let mut extrapolated = 0;
+    while let Some(number) = lasts.pop() {
+        extrapolated += number;
+    }
+
+    extrapolated
 }
 
 fn parse(lines: &Vec<String>) -> Vec<Vec<isize>> {
@@ -28,11 +53,9 @@ mod tests {
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
         let histories = parse(&lines);
 
-        println!("{:?}", histories);
+        let result = sum_of_extrapolated(&histories);
 
-        // let result = sum_of_extrapolated(&histories);
-
-        // assert_eq!(result, 114);
+        assert_eq!(result, 114);
     }
 
     #[test]
