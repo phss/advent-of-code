@@ -17,6 +17,10 @@ pub fn part2() -> usize {
 }
 
 fn furthest_steps(map: &Vec<Vec<char>>) -> usize {
+    find_loop(map).len() / 2
+}
+
+fn find_loop(map: &Vec<Vec<char>>) -> HashSet<(usize, usize)> {
     let width = map[0].len();
     let height = map.len();
 
@@ -49,7 +53,7 @@ fn furthest_steps(map: &Vec<Vec<char>>) -> usize {
         }
     }
 
-    visited.len() / 2
+    visited
 }
 
 fn valid_step(pipe: char, (x, y): (isize, isize)) -> bool {
@@ -69,6 +73,12 @@ fn valid_step(pipe: char, (x, y): (isize, isize)) -> bool {
         ('F', -1, _) => true,
         _ => false,
     }
+}
+
+fn enclosed(map: &Vec<Vec<char>>) -> usize {
+    let loop_nodes = find_loop(map);
+
+    0
 }
 
 #[cfg(test)]
@@ -98,5 +108,45 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "FF7FSF7F7F7F7F7F---7",
+            "L|LJ||||||||||||F--J",
+            "FL-7LJLJ||||||LJL-77",
+            "F--JF--7||LJLJ7F7FJ-",
+            "L---JF-JLJ.||-FJLJJ7",
+            "|F|F-JF---7F7-L7L|7|",
+            "|FFJF7L7F-JF7|JL---7",
+            "7-L-JL7||F7|L7F-7F7|",
+            "L.L7LFJ|||||FJL7||LJ",
+            "L7JLJL-JLJLJL--JLJ.L",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let map = map::parse(&lines);
+
+        let result = enclosed(&map);
+
+        assert_eq!(result, 10);
+    }
+
+    #[test]
+    fn sample_input_part_2_small_example() {
+        let lines = vec![
+            "...........",
+            ".S-------7.",
+            ".|F-----7|.",
+            ".||.....||.",
+            ".||.....||.",
+            ".|L-7.F-J|.",
+            ".|..|.|..|.",
+            ".L--J.L--J.",
+            "...........",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let map = map::parse(&lines);
+
+        let result = enclosed(&map);
+
+        assert_eq!(result, 4);
+    }
 }
