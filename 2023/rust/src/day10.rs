@@ -13,7 +13,9 @@ pub fn part1() -> usize {
 }
 
 pub fn part2() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day10.txt").unwrap();
+    let map = map::parse(&lines);
+    enclosed(&map)
 }
 
 fn furthest_steps(map: &Vec<Vec<char>>) -> usize {
@@ -76,9 +78,40 @@ fn valid_step(pipe: char, (x, y): (isize, isize)) -> bool {
 }
 
 fn enclosed(map: &Vec<Vec<char>>) -> usize {
+    let width = map[0].len();
+    let height = map.len();
     let loop_nodes = find_loop(map);
+    let mut inside = 0;
 
-    0
+    for y in 0..height {
+        let mut left_pipes = 0;
+        let mut previous_twisted_pipe = ' ';
+        for x in 0..width {
+            if loop_nodes.contains(&(x, y)) {
+                match (previous_twisted_pipe, map[y][x]) {
+                    (_, '-') => {}
+                    (_, '|') => left_pipes += 1,
+                    ('L', '7') => {
+                        left_pipes += 1;
+                        previous_twisted_pipe = ' ';
+                    }
+                    ('S', '7') => {
+                        left_pipes += 1;
+                        previous_twisted_pipe = ' ';
+                    }
+                    ('F', 'J') => {
+                        left_pipes += 1;
+                        previous_twisted_pipe = ' ';
+                    }
+                    (_, pipe) => previous_twisted_pipe = pipe,
+                }
+            } else if left_pipes % 2 != 0 {
+                inside += 1;
+            }
+        }
+    }
+
+    inside
 }
 
 #[cfg(test)]
@@ -141,6 +174,27 @@ mod tests {
             ".|..|.|..|.",
             ".L--J.L--J.",
             "...........",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let map = map::parse(&lines);
+
+        let result = enclosed(&map);
+
+        assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn sample_input_part_2_inner_place() {
+        let lines = vec![
+            "..........",
+            ".S------7.",
+            ".|F----7|.",
+            ".||OOOO||.",
+            ".||OOOO||.",
+            ".|L-7F-J|.",
+            ".|II||II|.",
+            ".L--JL--J.",
+            "..........",
         ];
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
         let map = map::parse(&lines);
