@@ -7,14 +7,16 @@ use itertools::Itertools;
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day11.txt").unwrap();
     let map = map::parse(&lines);
-    sum_of_lengths_after_expansion(&map)
+    sum_of_lengths_after_expansion(&map, 1)
 }
 
 pub fn part2() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day11.txt").unwrap();
+    let map = map::parse(&lines);
+    sum_of_lengths_after_expansion(&map, 1000000 - 1)
 }
 
-fn sum_of_lengths_after_expansion(map: &Vec<Vec<char>>) -> usize {
+fn sum_of_lengths_after_expansion(map: &Vec<Vec<char>>, expansion_size: isize) -> usize {
     let mut lengths = 0;
     let galaxies = map::positions(map, '#');
 
@@ -29,13 +31,13 @@ fn sum_of_lengths_after_expansion(map: &Vec<Vec<char>>) -> usize {
 
         (x_a.min(x_b)..x_a.max(x_b)).for_each(|x| {
             if !cols_with_galaxy.contains(&x) {
-                length += 1;
+                length += expansion_size;
             }
         });
 
         (y_a.min(y_b)..y_a.max(y_b)).for_each(|y| {
             if !rows_with_galaxy.contains(&y) {
-                length += 1;
+                length += expansion_size;
             }
         });
 
@@ -66,11 +68,30 @@ mod tests {
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
         let map = map::parse(&lines);
 
-        let result = sum_of_lengths_after_expansion(&map);
+        let result = sum_of_lengths_after_expansion(&map, 1);
 
         assert_eq!(result, 374);
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "...#......",
+            ".......#..",
+            "#.........",
+            "..........",
+            "......#...",
+            ".#........",
+            ".........#",
+            "..........",
+            ".......#..",
+            "#...#.....",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let map = map::parse(&lines);
+
+        let result = sum_of_lengths_after_expansion(&map, 99);
+
+        assert_eq!(result, 8410);
+    }
 }
