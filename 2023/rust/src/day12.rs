@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+use cached::proc_macro::cached;
+
 use crate::parser;
 
 #[derive(Debug)]
@@ -34,17 +36,20 @@ pub fn part1() -> usize {
 }
 
 pub fn part2() -> usize {
-    0
+    let records: Vec<Record> = parser::read("data/day12.txt").unwrap();
+    let unfolded_records = unfold(records);
+    sum_of_arrangements(&unfolded_records)
 }
 
 fn sum_of_arrangements(records: &Vec<Record>) -> usize {
     records
         .iter()
-        .map(|record| arrangements(&record.field, record.damaged.clone()))
+        .map(|record| arrangements(record.field.clone(), record.damaged.clone()))
         .sum()
 }
 
-fn arrangements(field: &str, damaged: Vec<usize>) -> usize {
+#[cached]
+fn arrangements(field: String, damaged: Vec<usize>) -> usize {
     if field.len() == 0 {
         return if damaged.len() == 0 { 1 } else { 0 };
     }
@@ -53,7 +58,7 @@ fn arrangements(field: &str, damaged: Vec<usize>) -> usize {
 
     let head = field.chars().nth(0).unwrap();
     if head == '.' || head == '?' {
-        count += arrangements(&field[1..], damaged.clone());
+        count += arrangements(field[1..].to_string(), damaged.clone());
     }
 
     if head == '#' || head == '?' {
@@ -69,12 +74,31 @@ fn arrangements(field: &str, damaged: Vec<usize>) -> usize {
                 } else {
                     *damage + 1
                 };
-                count += arrangements(&field[damage_size..], damaged[1..].to_vec());
+                count += arrangements(field[damage_size..].to_string(), damaged[1..].to_vec());
             }
         }
     }
 
     count
+}
+
+fn unfold(records: Vec<Record>) -> Vec<Record> {
+    records
+        .iter()
+        .map(|record| {
+            let mut field = record.field.clone();
+            let mut damaged = record.damaged.clone();
+
+            for _ in 0..4 {
+                field.push('?');
+                field.push_str(&record.field);
+
+                damaged.extend(record.damaged.clone());
+            }
+
+            Record { field, damaged }
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -99,5 +123,20 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "???.### 1,1,3",
+            ".??..??...?##. 1,1,3",
+            "?#?#?#?#?#?#?#? 1,3,1,6",
+            "????.#...#... 4,1,1",
+            "????.######..#####. 1,6,5",
+            "?###???????? 3,2,1",
+        ];
+        let records: Vec<Record> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let unfolded_records = unfold(records);
+
+        let result = sum_of_arrangements(&unfolded_records);
+
+        assert_eq!(result, 525152);
+    }
 }
