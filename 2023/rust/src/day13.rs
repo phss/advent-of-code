@@ -3,41 +3,59 @@ use crate::parser;
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day13.txt").unwrap();
     let maps = parse(&lines);
-    note_summary(&maps)
+    note_summary(&maps, 0)
 }
 
 pub fn part2() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day13.txt").unwrap();
+    let maps = parse(&lines);
+    note_summary(&maps, 1)
 }
 
-fn note_summary(maps: &Vec<Vec<Vec<char>>>) -> usize {
+fn note_summary(maps: &Vec<Vec<Vec<char>>>, smudge_limit: usize) -> usize {
     maps.iter()
         .map(|map| {
-            mirror(map)
+            mirror(map, smudge_limit)
                 .map(|axis| axis * 100)
-                .or(mirror(&transpose(map)))
+                .or(mirror(&transpose(map), smudge_limit))
                 .unwrap_or(0)
         })
         .sum()
 }
 
-fn mirror(map: &Vec<Vec<char>>) -> Option<usize> {
+fn mirror(map: &Vec<Vec<char>>, smudge_limit: usize) -> Option<usize> {
     let height = map.len();
 
     for i in 0..height / 2 {
-        if (0..=i).all(|j| {
-            let a = i - j;
-            let b = i + j + 1;
-            map[a] == map[b]
-        }) {
+        let diffs: usize = (0..=i)
+            .map(|j| {
+                let a = i - j;
+                let b = i + j + 1;
+                map[a]
+                    .iter()
+                    .zip(map[b].iter())
+                    .filter(|(a, b)| a != b)
+                    .count()
+            })
+            .sum();
+
+        if diffs == smudge_limit {
             return Some(i + 1);
         }
 
-        if (0..=i).all(|j| {
-            let a = height - 1 - i + j;
-            let b = height - 1 - i - j - 1;
-            map[a] == map[b]
-        }) {
+        let diffs: usize = (0..=i)
+            .map(|j| {
+                let a = height - 1 - i + j;
+                let b = height - 1 - i - j - 1;
+                map[a]
+                    .iter()
+                    .zip(map[b].iter())
+                    .filter(|(a, b)| a != b)
+                    .count()
+            })
+            .sum();
+
+        if diffs == smudge_limit {
             return Some(height - 1 - i);
         }
     }
@@ -88,7 +106,7 @@ mod tests {
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
         let maps = parse(&lines);
 
-        let result = note_summary(&maps);
+        let result = note_summary(&maps, 0);
 
         assert_eq!(result, 405);
     }
@@ -149,11 +167,96 @@ mod tests {
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
         let maps = parse(&lines);
 
-        let result = note_summary(&maps);
+        let result = note_summary(&maps, 0);
 
         assert_eq!(result, 715);
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "#.##..##.",
+            "..#.##.#.",
+            "##......#",
+            "##......#",
+            "..#.##.#.",
+            "..##..##.",
+            "#.#.##.#.",
+            "",
+            "#...##..#",
+            "#....#..#",
+            "..##..###",
+            "#####.##.",
+            "#####.##.",
+            "..##..###",
+            "#....#..#",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let maps = parse(&lines);
+
+        let result = note_summary(&maps, 1);
+
+        assert_eq!(result, 400);
+    }
+
+    #[test]
+    fn sample_input_part_2_additional() {
+        let lines = vec![
+            "##...##",
+            "..#.#..",
+            "#...#..",
+            ".###.##",
+            "##.#.##",
+            "##..###",
+            "##.....",
+            ".#.##..",
+            ".#..#..",
+            "",
+            "#.##..##.",
+            "..#.##.#.",
+            "##......#",
+            "##......#",
+            "..#.##.#.",
+            "..##..##.",
+            "#.#.##.#.",
+            "",
+            "#...##..#",
+            "#....#..#",
+            "..##..###",
+            "#####.##.",
+            "#####.##.",
+            "..##..###",
+            "#....#..#",
+            "",
+            ".#.##.#.#",
+            ".##..##..",
+            ".#.##.#..",
+            "#......##",
+            "#......##",
+            ".#.##.#..",
+            ".##..##.#",
+            "",
+            "#..#....#",
+            "###..##..",
+            ".##.#####",
+            ".##.#####",
+            "###..##..",
+            "#..#....#",
+            "#..##...#",
+            "",
+            "#.##..##.",
+            "..#.##.#.",
+            "##..#...#",
+            "##...#..#",
+            "..#.##.#.",
+            "..##..##.",
+            "#.#.##.#.",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let maps = parse(&lines);
+
+        let result = note_summary(&maps, 1);
+
+        assert_eq!(result, 2200);
+    }
 }
