@@ -1,7 +1,14 @@
 use crate::parser;
 
 pub fn part1() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day15.txt").unwrap();
+    let init_seq = lines
+        .first()
+        .unwrap()
+        .split(",")
+        .map(|s| s.to_string())
+        .collect();
+    sum_hash(&init_seq)
 }
 
 pub fn part2() -> usize {
@@ -9,7 +16,16 @@ pub fn part2() -> usize {
 }
 
 fn sum_hash(seq: &Vec<String>) -> usize {
-    0
+    seq.iter().map(hash).sum()
+}
+
+fn hash(str: &String) -> usize {
+    Vec::from(str.clone()).iter().fold(0, |acc, c| {
+        let mut new_acc = acc + *c as usize;
+        new_acc *= 17;
+        new_acc %= 256;
+        new_acc
+    })
 }
 
 #[cfg(test)]
