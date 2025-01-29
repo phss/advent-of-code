@@ -15,7 +15,7 @@ pub fn part2() -> usize {
 }
 
 fn mega_spin(map: &mut Vec<Vec<char>>) {
-    for i in 0..1000 {
+    for _ in 0..1000 {
         tilt_north(map);
         tilt_west(map);
         tilt_south(map);
