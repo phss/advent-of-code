@@ -7,18 +7,39 @@ use crate::parser;
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day16.txt").unwrap();
     let map = parse(&lines);
-    count_energized(&map)
+    let start: ((isize, isize), (isize, isize)) = ((-1, 0), (1, 0));
+    count_energized(&map, start)
 }
 
 pub fn part2() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day16.txt").unwrap();
+    let map = parse(&lines);
+    most_energized(&map)
 }
 
-fn count_energized(map: &Vec<Vec<char>>) -> usize {
+fn most_energized(map: &Vec<Vec<char>>) -> usize {
     let width = map[0].len() as isize;
     let height = map.len() as isize;
 
-    let start: ((isize, isize), (isize, isize)) = ((-1, 0), (1, 0));
+    let mut max = 0;
+
+    for x in 0..width {
+        max = max.max(count_energized(map, ((x, -1), (0, 1))));
+        max = max.max(count_energized(map, ((x, height), (0, -1))));
+    }
+
+    for y in 0..height {
+        max = max.max(count_energized(map, ((-1, y), (1, 0))));
+        max = max.max(count_energized(map, ((y, width), (-1, 0))));
+    }
+
+    max
+}
+
+fn count_energized(map: &Vec<Vec<char>>, start: ((isize, isize), (isize, isize))) -> usize {
+    let width = map[0].len() as isize;
+    let height = map.len() as isize;
+
     let mut visited = HashSet::new();
     let mut search_heap = Vec::new();
     search_heap.push(start);
@@ -81,11 +102,31 @@ mod tests {
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
         let map = parse(&lines);
 
-        let result = count_energized(&map);
+        let start: ((isize, isize), (isize, isize)) = ((-1, 0), (1, 0));
+        let result = count_energized(&map, start);
 
         assert_eq!(result, 46);
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            ".|...\\....",
+            "|.-.\\.....",
+            ".....|-...",
+            "........|.",
+            "..........",
+            ".........\\",
+            "..../.\\\\..",
+            ".-.-/..|..",
+            ".|....-|.\\",
+            "..//.|....",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let map = parse(&lines);
+
+        let result = most_energized(&map);
+
+        assert_eq!(result, 51);
+    }
 }
