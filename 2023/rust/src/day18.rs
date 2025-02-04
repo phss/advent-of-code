@@ -1,4 +1,4 @@
-use std::{collections::HashSet, str::FromStr};
+use std::str::FromStr;
 
 use crate::parser;
 
@@ -40,35 +40,45 @@ pub fn part2() -> usize {
 }
 
 fn capacity(plan: &Vec<Dig>) -> usize {
-    let borders = to_borders(plan);
-    let width = borders.iter().map(|(x, _)| x).max().unwrap() + 1;
-    let height = borders.iter().map(|(_, y)| y).max().unwrap() + 1;
-
-    let mut inside = 0;
-    for y in 0..height {
-        let mut walls = 0;
-        for x in 0..width {
-            if borders.contains(&(x, y)) {
-                print!("#");
-                if x == 0 || !borders.contains(&(x - 1, y)) {
-                    walls += 1;
-                }
-            } else if walls % 2 != 0 {
-                print!("O");
-                inside += 1;
-            } else {
-                print!(".");
-            }
-        }
-        println!();
-    }
-
-    borders.len() + inside
+    let coords = to_coordinates(plan);
+    area(&coords) + perimeter(&coords) / 2 + 1
 }
 
-fn to_borders(plan: &Vec<Dig>) -> HashSet<(usize, usize)> {
-    let mut borders: HashSet<(isize, isize)> = HashSet::new();
+fn area(coords: &Vec<(usize, usize)>) -> usize {
+    let xs: Vec<usize> = coords.iter().map(|(x, _)| *x).collect();
+    let ys: Vec<usize> = coords.iter().map(|(_, y)| *y).collect();
+
+    let a: usize = xs[..xs.len() - 1]
+        .iter()
+        .zip(ys[1..].iter())
+        .map(|(x, y)| x * y)
+        .sum();
+
+    let b: usize = xs[1..]
+        .iter()
+        .zip(ys[..ys.len() - 1].iter())
+        .map(|(x, y)| x * y)
+        .sum();
+
+    (a - b) / 2
+}
+
+fn perimeter(coords: &Vec<(usize, usize)>) -> usize {
+    coords
+        .windows(2)
+        .map(|cs| {
+            let (x1, y1) = (cs[0].0 as isize, cs[0].1 as isize);
+            let (x2, y2) = (cs[1].0 as isize, cs[1].1 as isize);
+
+            (x1 - x2).abs() as usize + (y1 - y2).abs() as usize
+        })
+        .sum()
+}
+
+fn to_coordinates(plan: &Vec<Dig>) -> Vec<(usize, usize)> {
+    let mut coords: Vec<(isize, isize)> = Vec::new();
     let mut current = (0, 0);
+    coords.push(current);
 
     for dig in plan {
         for _ in 1..=dig.meters {
@@ -79,33 +89,17 @@ fn to_borders(plan: &Vec<Dig>) -> HashSet<(usize, usize)> {
                 'U' => (current.0, current.1 - 1),
                 _ => panic!("unreacheable"),
             };
-            borders.insert(current);
         }
+        coords.push(current);
     }
 
-    let min_x = borders.iter().map(|(x, _)| x).min().unwrap();
-    let min_y = borders.iter().map(|(_, y)| y).min().unwrap();
+    let min_x = coords.iter().map(|(x, _)| x).min().unwrap();
+    let min_y = coords.iter().map(|(_, y)| y).min().unwrap();
 
-    borders
+    coords
         .iter()
         .map(|(x, y)| ((x + min_x.abs()) as usize, (y + min_y.abs()) as usize))
         .collect()
-}
-
-fn print(borders: &HashSet<(usize, usize)>) {
-    let width = borders.iter().map(|(x, _)| x).max().unwrap() + 1;
-    let height = borders.iter().map(|(_, y)| y).max().unwrap() + 1;
-
-    for y in 0..height {
-        for x in 0..width {
-            if borders.contains(&(x, y)) {
-                print!("#");
-            } else {
-                print!(".");
-            }
-        }
-        println!();
-    }
 }
 
 #[cfg(test)]
