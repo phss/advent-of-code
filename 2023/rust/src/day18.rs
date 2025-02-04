@@ -36,7 +36,9 @@ pub fn part1() -> usize {
 }
 
 pub fn part2() -> usize {
-    0
+    let plan: Vec<Dig> = parser::read("data/day18.txt").unwrap();
+    let fixed_plan = unscramble(plan);
+    capacity(&fixed_plan)
 }
 
 fn capacity(plan: &Vec<Dig>) -> usize {
@@ -102,6 +104,26 @@ fn to_coordinates(plan: &Vec<Dig>) -> Vec<(usize, usize)> {
         .collect()
 }
 
+fn unscramble(plan: Vec<Dig>) -> Vec<Dig> {
+    plan.iter()
+        .map(|dig| {
+            let direction = match dig.color.chars().nth(6).unwrap() {
+                '0' => 'R',
+                '1' => 'D',
+                '2' => 'L',
+                '3' => 'U',
+                _ => panic!("unreacheable"),
+            };
+            let meters = usize::from_str_radix(&dig.color[1..6], 16).unwrap();
+            Dig {
+                direction,
+                meters,
+                color: "blah".to_string(),
+            }
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -132,5 +154,28 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "R 6 (#70c710)",
+            "D 5 (#0dc571)",
+            "L 2 (#5713f0)",
+            "D 2 (#d2c081)",
+            "R 2 (#59c680)",
+            "D 2 (#411b91)",
+            "L 5 (#8ceee2)",
+            "U 2 (#caa173)",
+            "L 1 (#1b58a2)",
+            "U 2 (#caa171)",
+            "R 2 (#7807d2)",
+            "U 3 (#a77fa3)",
+            "L 2 (#015232)",
+            "U 2 (#7a21e3)",
+        ];
+        let plan: Vec<Dig> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let fixed_plan = unscramble(plan);
+
+        let result = capacity(&fixed_plan);
+
+        assert_eq!(result, 952408144115);
+    }
 }
