@@ -6,7 +6,7 @@ use regex::Regex;
 #[derive(Debug)]
 struct Workflow {
     label: String,
-    rules: Vec<(String, char, usize, String)>,
+    rules: Vec<(char, char, usize, String)>,
     fallback: String,
 }
 
@@ -18,14 +18,58 @@ struct Part {
     s: usize,
 }
 
+impl Part {
+    fn ratings_sum(&self) -> usize {
+        self.x + self.m + self.a + self.s
+    }
+}
+
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day19.txt").unwrap();
     let (workflows, parts) = parse(&lines);
-    0
+    sum_of_accepted_parts(&workflows, &parts)
 }
 
 pub fn part2() -> usize {
     0
+}
+
+fn sum_of_accepted_parts(workflows: &HashMap<String, Workflow>, parts: &Vec<Part>) -> usize {
+    parts
+        .iter()
+        .filter(|part| is_accepted(workflows, part))
+        .map(|part| part.ratings_sum())
+        .sum()
+}
+
+fn is_accepted(workflows: &HashMap<String, Workflow>, part: &Part) -> bool {
+    let mut current_node = &"in".to_string();
+    let stop_nodes = vec!["A".to_string(), "R".to_string()];
+
+    while !stop_nodes.contains(current_node) {
+        let workflow = workflows.get(current_node).unwrap();
+        let next_node = workflow
+            .rules
+            .iter()
+            .find(|(attr, op, val, _)| {
+                let actual = match attr {
+                    'x' => part.x,
+                    'm' => part.m,
+                    'a' => part.a,
+                    's' => part.s,
+                    _ => panic!("unreacheable attr"),
+                };
+                match op {
+                    '<' => actual < *val,
+                    '>' => actual > *val,
+                    _ => panic!("unreacheable op"),
+                }
+            })
+            .map(|(_, _, _, node)| node);
+        current_node = next_node.unwrap_or(&workflow.fallback)
+    }
+
+    current_node == "A"
 }
 
 fn parse(lines: &Vec<String>) -> (HashMap<String, Workflow>, Vec<Part>) {
@@ -41,7 +85,7 @@ fn parse(lines: &Vec<String>) -> (HashMap<String, Workflow>, Vec<Part>) {
 
         let mut rules = Vec::new();
         for rule_caps in rules_re.captures_iter(rules_str) {
-            let field = rule_caps.get(1).unwrap().as_str().to_string();
+            let field = rule_caps.get(1).unwrap().as_str().chars().next().unwrap();
             let operator = rule_caps.get(2).unwrap().as_str().chars().next().unwrap();
             let value = rule_caps.get(3).unwrap().as_str().parse().unwrap();
             let target = rule_caps.get(4).unwrap().as_str().to_string();
@@ -100,9 +144,9 @@ mod tests {
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
         let (workflows, parts) = parse(&lines);
 
-        // let result = sum_of_accepted_parts(&workflow, &parts);
+        let result = sum_of_accepted_parts(&workflows, &parts);
 
-        // assert_eq!(result, 19114);
+        assert_eq!(result, 19114);
     }
 
     #[test]
