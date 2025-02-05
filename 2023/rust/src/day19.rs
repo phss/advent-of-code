@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::collections::HashMap;
 
 use crate::parser;
@@ -70,6 +71,68 @@ fn is_accepted(workflows: &HashMap<String, Workflow>, part: &Part) -> bool {
     }
 
     current_node == "A"
+}
+
+fn all_accepted_combinations(
+    workflows: &HashMap<String, Workflow>,
+    node: &String,
+    previous_rules: &Vec<(char, char, usize, String)>,
+) -> usize {
+    if node == &"R".to_string() {
+        return 0;
+    }
+    if node == &"A".to_string() {
+        return combinations(previous_rules);
+    }
+
+    let workflow = workflows.get(node).unwrap();
+    let rule_combinations: usize = workflow
+        .rules
+        .iter()
+        .map(|rule| {
+            let mut rules = previous_rules.clone();
+            rules.push(rule.clone());
+            all_accepted_combinations(workflows, &rule.3, &rules)
+        })
+        .sum();
+
+    let negated_rules: Vec<(char, char, usize, String)> = workflow
+        .rules
+        .iter()
+        .map(|(attr, op, val, node)| {
+            let (negated_op, negated_val) = if *op == '<' {
+                ('>', val - 1)
+            } else {
+                ('<', val + 1)
+            };
+            (*attr, negated_op, negated_val, node.clone())
+        })
+        .collect();
+    let mut rules = previous_rules.clone();
+    rules.extend(negated_rules);
+    let fallback_combinations = all_accepted_combinations(workflows, &workflow.fallback, &rules);
+
+    rule_combinations + fallback_combinations
+}
+
+fn combinations(rules: &Vec<(char, char, usize, String)>) -> usize {
+    let rules_by_attr = rules.iter().into_group_map_by(|(attr, _, _, _)| attr);
+    let blah = rules_by_attr.values().map(|rules| {
+        let start = rules
+            .iter()
+            .filter(|(_, op, _, _)| *op == '>')
+            .map(|(_, _, val, _)| *val)
+            .max()
+            .unwrap_or(0);
+        let end = rules
+            .iter()
+            .filter(|(_, op, _, _)| *op == '<')
+            .map(|(_, _, val, _)| *val + 1)
+            .min()
+            .unwrap_or(4000);
+        end - start
+    });
+    blah.reduce(|acc, e| acc * e).unwrap()
 }
 
 fn parse(lines: &Vec<String>) -> (HashMap<String, Workflow>, Vec<Part>) {
@@ -150,5 +213,31 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "px{a<2006:qkq,m>2090:A,rfg}",
+            "pv{a>1716:R,A}",
+            "lnx{m>1548:A,A}",
+            "rfg{s<537:gd,x>2440:R,A}",
+            "qs{s>3448:A,lnx}",
+            "qkq{x<1416:A,crn}",
+            "crn{x>2662:A,R}",
+            "in{s<1351:px,qqz}",
+            "qqz{s>2770:qs,m<1801:hdj,R}",
+            "gd{a>3333:R,R}",
+            "hdj{m>838:A,pv}",
+            "",
+            "{x=787,m=2655,a=1222,s=2876}",
+            "{x=1679,m=44,a=2067,s=496}",
+            "{x=2036,m=264,a=79,s=2244}",
+            "{x=2461,m=1339,a=466,s=291}",
+            "{x=2127,m=1623,a=2188,s=1013}",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let (workflows, _) = parse(&lines);
+
+        let result = all_accepted_combinations(&workflows, &"in".to_string(), &Vec::new());
+
+        assert_eq!(result, 167409079868000);
+    }
 }
