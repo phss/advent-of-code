@@ -72,7 +72,7 @@ fn transpose(map: &Vec<Vec<char>>) -> Vec<Vec<char>> {
         .collect()
 }
 
-pub fn parse(lines: &Vec<String>) -> Vec<Vec<Vec<char>>> {
+fn parse(lines: &Vec<String>) -> Vec<Vec<Vec<char>>> {
     let parts = lines.split(String::is_empty);
 
     parts
