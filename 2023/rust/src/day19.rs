@@ -4,10 +4,13 @@ use std::collections::HashMap;
 use crate::parser;
 use regex::Regex;
 
+type Rule = (char, char, usize, String);
+
 #[derive(Debug)]
 struct Workflow {
+    #[allow(dead_code)]
     label: String,
-    rules: Vec<(char, char, usize, String)>,
+    rules: Vec<Rule>,
     fallback: String,
 }
 
@@ -32,7 +35,9 @@ pub fn part1() -> usize {
 }
 
 pub fn part2() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day19.txt").unwrap();
+    let (workflows, _) = parse(&lines);
+    all_accepted_combinations(&workflows, &"in".to_string(), &Vec::new())
 }
 
 fn sum_of_accepted_parts(workflows: &HashMap<String, Workflow>, parts: &Vec<Part>) -> usize {
@@ -76,7 +81,7 @@ fn is_accepted(workflows: &HashMap<String, Workflow>, part: &Part) -> bool {
 fn all_accepted_combinations(
     workflows: &HashMap<String, Workflow>,
     node: &String,
-    previous_rules: &Vec<(char, char, usize, String)>,
+    previous_rules: &Vec<Rule>,
 ) -> usize {
     if node == &"R".to_string() {
         return 0;
@@ -86,28 +91,17 @@ fn all_accepted_combinations(
     }
 
     let workflow = workflows.get(node).unwrap();
-    let rule_combinations: usize = workflow
-        .rules
-        .iter()
-        .map(|rule| {
-            let mut rules = previous_rules.clone();
-            rules.push(rule.clone());
-            all_accepted_combinations(workflows, &rule.3, &rules)
-        })
-        .sum();
 
-    let negated_rules: Vec<(char, char, usize, String)> = workflow
-        .rules
-        .iter()
-        .map(|(attr, op, val, node)| {
-            let (negated_op, negated_val) = if *op == '<' {
-                ('>', val - 1)
-            } else {
-                ('<', val + 1)
-            };
-            (*attr, negated_op, negated_val, node.clone())
-        })
-        .collect();
+    let mut rule_combinations = 0;
+    let mut negated_rules = Vec::new();
+    for rule in &workflow.rules {
+        let mut rules = previous_rules.clone();
+        rules.extend(negated_rules.clone());
+        rules.push(rule.clone());
+        rule_combinations += all_accepted_combinations(workflows, &rule.3, &rules);
+        negated_rules.push(negate(&rule));
+    }
+
     let mut rules = previous_rules.clone();
     rules.extend(negated_rules);
     let fallback_combinations = all_accepted_combinations(workflows, &workflow.fallback, &rules);
@@ -115,24 +109,42 @@ fn all_accepted_combinations(
     rule_combinations + fallback_combinations
 }
 
-fn combinations(rules: &Vec<(char, char, usize, String)>) -> usize {
+fn negate((attr, op, val, _): &Rule) -> Rule {
+    let (negated_op, negated_val) = if *op == '<' {
+        ('>', val - 1)
+    } else {
+        ('<', val + 1)
+    };
+    (*attr, negated_op, negated_val, "ignored".to_string())
+}
+
+fn combinations(rules: &Vec<Rule>) -> usize {
     let rules_by_attr = rules.iter().into_group_map_by(|(attr, _, _, _)| attr);
-    let blah = rules_by_attr.values().map(|rules| {
-        let start = rules
-            .iter()
-            .filter(|(_, op, _, _)| *op == '>')
-            .map(|(_, _, val, _)| *val)
-            .max()
-            .unwrap_or(0);
-        let end = rules
-            .iter()
-            .filter(|(_, op, _, _)| *op == '<')
-            .map(|(_, _, val, _)| *val + 1)
-            .min()
-            .unwrap_or(4000);
-        end - start
-    });
-    blah.reduce(|acc, e| acc * e).unwrap()
+    let grouped_rules: HashMap<_, _> = rules_by_attr
+        .into_iter()
+        .map(|(attr, rules)| {
+            let start = rules
+                .iter()
+                .filter(|(_, op, _, _)| *op == '>')
+                .map(|(_, _, val, _)| *val)
+                .max()
+                .unwrap_or(0);
+            let end = rules
+                .iter()
+                .filter(|(_, op, _, _)| *op == '<')
+                .map(|(_, _, val, _)| *val - 1)
+                .min()
+                .unwrap_or(4000);
+            (attr, end - start)
+        })
+        .collect();
+
+    let x = grouped_rules.get(&'x').unwrap_or(&4000);
+    let m = grouped_rules.get(&'m').unwrap_or(&4000);
+    let a = grouped_rules.get(&'a').unwrap_or(&4000);
+    let s = grouped_rules.get(&'s').unwrap_or(&4000);
+
+    x * m * a * s
 }
 
 fn parse(lines: &Vec<String>) -> (HashMap<String, Workflow>, Vec<Part>) {
