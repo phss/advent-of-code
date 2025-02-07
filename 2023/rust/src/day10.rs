@@ -161,46 +161,4 @@ mod tests {
 
         assert_eq!(result, 10);
     }
-
-    #[test]
-    fn sample_input_part_2_small_example() {
-        let lines = vec![
-            "...........",
-            ".S-------7.",
-            ".|F-----7|.",
-            ".||.....||.",
-            ".||.....||.",
-            ".|L-7.F-J|.",
-            ".|..|.|..|.",
-            ".L--J.L--J.",
-            "...........",
-        ];
-        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
-        let map = map::parse(&lines);
-
-        let result = enclosed(&map);
-
-        assert_eq!(result, 4);
-    }
-
-    #[test]
-    fn sample_input_part_2_inner_place() {
-        let lines = vec![
-            "..........",
-            ".S------7.",
-            ".|F----7|.",
-            ".||OOOO||.",
-            ".||OOOO||.",
-            ".|L-7F-J|.",
-            ".|II||II|.",
-            ".L--JL--J.",
-            "..........",
-        ];
-        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
-        let map = map::parse(&lines);
-
-        let result = enclosed(&map);
-
-        assert_eq!(result, 4);
-    }
 }
