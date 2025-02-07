@@ -9,8 +9,7 @@ impl FromStr for Broadcaster {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts: Vec<&str> = s.split("->").collect();
-        let destinations = parts[1].split(',').map(|s| s.trim().to_string()).collect();
+        let (_, destinations) = parse(s, "");
         Ok(Broadcaster { destinations })
     }
 }
@@ -26,9 +25,7 @@ impl FromStr for FlipFlop {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts: Vec<&str> = s.split(" -> ").collect();
-        let label = parts[0].strip_prefix("%").unwrap().to_string();
-        let destinations = parts[1].split(',').map(|s| s.trim().to_string()).collect();
+        let (label, destinations) = parse(s, "%");
         Ok(FlipFlop {
             label,
             on: false,
@@ -48,15 +45,20 @@ impl FromStr for Conjunction {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts: Vec<&str> = s.split(" -> ").collect();
-        let label = parts[0].strip_prefix("&").unwrap().to_string();
-        let destinations = parts[1].split(',').map(|s| s.trim().to_string()).collect();
+        let (label, destinations) = parse(s, "&");
         Ok(Conjunction {
             label,
             input_pulses: HashMap::new(),
             destinations,
         })
     }
+}
+
+fn parse(s: &str, prefix: &str) -> (String, Vec<String>) {
+    let parts: Vec<&str> = s.split(" -> ").collect();
+    let label = parts[0].strip_prefix(prefix).unwrap().to_string();
+    let destinations = parts[1].split(',').map(|s| s.trim().to_string()).collect();
+    (label, destinations)
 }
 
 #[cfg(test)]
