@@ -1,4 +1,9 @@
+mod module;
+mod simulation;
+
 use crate::parser;
+
+struct Module {}
 
 pub fn part1() -> usize {
     0
@@ -13,8 +18,39 @@ mod tests {
     use super::*;
 
     #[test]
-    fn sample_input_part_1() {}
+    fn sample_input_part_1() {
+        let lines = vec![
+            "broadcaster -> a, b, c",
+            "%a -> b",
+            "%b -> c",
+            "%c -> inv",
+            "&inv -> a",
+        ];
+        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let sim = simulation::Simulation::parse(&lines);
+
+        println!("{:?}", sim.broadcaster);
+
+        // let result = pulses_mut(&workflows, &parts);
+
+        // assert_eq!(result, 32000000);
+    }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "broadcaster -> a",
+            "%a -> inv, con",
+            "&inv -> b",
+            "%b -> con",
+            "&con -> output",
+        ];
+        // let modules: Vec<Module> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+
+        // println!("{:?}", modules);
+
+        // let result = pulses_mut(&workflows, &parts);
+
+        // assert_eq!(result, 11687500);
+    }
 }
