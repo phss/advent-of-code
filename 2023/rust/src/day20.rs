@@ -29,7 +29,7 @@ mod tests {
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
         let sim = simulation::Simulation::parse(&lines);
 
-        println!("{:?}", sim.broadcaster);
+        println!("{:?}", sim);
 
         // let result = pulses_mut(&workflows, &parts);
 

@@ -17,8 +17,8 @@ impl FromStr for Broadcaster {
 #[derive(Debug, PartialEq, Eq)]
 pub struct FlipFlop {
     label: String,
-    on: bool,
     destinations: Vec<String>,
+    on: bool,
 }
 
 impl FromStr for FlipFlop {
@@ -28,8 +28,8 @@ impl FromStr for FlipFlop {
         let (label, destinations) = parse(s, "%");
         Ok(FlipFlop {
             label,
-            on: false,
             destinations,
+            on: false,
         })
     }
 }
@@ -37,8 +37,8 @@ impl FromStr for FlipFlop {
 #[derive(Debug, PartialEq, Eq)]
 pub struct Conjunction {
     label: String,
-    input_pulses: HashMap<String, bool>,
     destinations: Vec<String>,
+    input_pulses: HashMap<String, bool>,
 }
 
 impl FromStr for Conjunction {
@@ -48,8 +48,8 @@ impl FromStr for Conjunction {
         let (label, destinations) = parse(s, "&");
         Ok(Conjunction {
             label,
-            input_pulses: HashMap::new(),
             destinations,
+            input_pulses: HashMap::new(),
         })
     }
 }
