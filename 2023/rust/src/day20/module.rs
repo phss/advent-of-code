@@ -2,6 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Broadcaster {
+    label: String,
     destinations: Vec<String>,
 }
 
@@ -9,8 +10,11 @@ impl FromStr for Broadcaster {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (_, destinations) = parse(s, "");
-        Ok(Broadcaster { destinations })
+        let (label, destinations) = parse(s, "");
+        Ok(Broadcaster {
+            label,
+            destinations,
+        })
     }
 }
 
@@ -75,6 +79,7 @@ mod tests {
             assert_eq!(
                 broadcaster,
                 Broadcaster {
+                    label: "broadcaster".to_string(),
                     destinations: vec!["a".to_string(), "b".to_string(), "c".to_string()]
                 }
             );
