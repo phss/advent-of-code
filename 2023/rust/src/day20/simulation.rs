@@ -1,4 +1,8 @@
-use std::collections::HashMap;
+use std::{
+    collections::{binary_heap::Iter, HashMap},
+    iter::Filter,
+    str::FromStr,
+};
 
 use super::module::{Broadcaster, Conjunction, FlipFlop};
 
@@ -11,28 +15,16 @@ pub struct Simulation {
 
 impl Simulation {
     pub fn parse(lines: &Vec<String>) -> Self {
-        let broadcaster: Broadcaster = lines
-            .iter()
-            .find(|line| line.starts_with("broadcaster"))
-            .map(|line| line.parse().unwrap())
+        let broadcaster: Broadcaster = Simulation::filter_and_parse(lines, "broadcaster")
+            .next()
             .unwrap();
 
-        let flip_flops: HashMap<String, FlipFlop> = lines
-            .iter()
-            .filter(|line| line.starts_with("%"))
-            .map(|line| {
-                let flip_flop: FlipFlop = line.parse().unwrap();
-                (flip_flop.label.clone(), flip_flop)
-            })
+        let flip_flops: HashMap<String, FlipFlop> = Simulation::filter_and_parse(lines, "%")
+            .map(|flip_flop: FlipFlop| (flip_flop.label.clone(), flip_flop))
             .collect();
 
-        let conjunctions: HashMap<String, Conjunction> = lines
-            .iter()
-            .filter(|line| line.starts_with("&"))
-            .map(|line| {
-                let conjunction: Conjunction = line.parse().unwrap();
-                (conjunction.label.clone(), conjunction)
-            })
+        let conjunctions: HashMap<String, Conjunction> = Simulation::filter_and_parse(lines, "&")
+            .map(|conjunction: Conjunction| (conjunction.label.clone(), conjunction))
             .collect();
 
         let mut inputs = HashMap::new();
@@ -64,10 +56,9 @@ impl Simulation {
             .clone()
             .map(|(a, b)| (a.clone(), b.clone()))
             .collect();
-
         for conjunction in conjunctions.values_mut() {
-            for blah in inputs.get(&conjunction.label).unwrap_or(&Vec::new()) {
-                conjunction.input_pulses.insert(blah.clone(), false);
+            for destination in inputs.get(&conjunction.label).unwrap_or(&Vec::new()) {
+                conjunction.input_pulses.insert(destination.clone(), false);
             }
         }
 
@@ -76,5 +67,19 @@ impl Simulation {
             flip_flops,
             conjunctions,
         }
+    }
+
+    fn filter_and_parse<'a, T>(
+        lines: &'a Vec<String>,
+        prefix: &'a str,
+    ) -> impl Iterator<Item = T> + 'a
+    where
+        T: FromStr,
+        <T as FromStr>::Err: std::fmt::Debug,
+    {
+        lines
+            .iter()
+            .filter(move |line| line.starts_with(prefix))
+            .map(|line| line.parse().unwrap())
     }
 }
