@@ -2,8 +2,8 @@ use std::{collections::HashMap, str::FromStr};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Broadcaster {
-    label: String,
-    destinations: Vec<String>,
+    pub label: String,
+    pub destinations: Vec<String>,
 }
 
 impl FromStr for Broadcaster {
@@ -20,9 +20,9 @@ impl FromStr for Broadcaster {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct FlipFlop {
-    label: String,
-    destinations: Vec<String>,
-    on: bool,
+    pub label: String,
+    pub destinations: Vec<String>,
+    pub on: bool,
 }
 
 impl FromStr for FlipFlop {
@@ -38,11 +38,11 @@ impl FromStr for FlipFlop {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Conjunction {
-    label: String,
-    destinations: Vec<String>,
-    input_pulses: HashMap<String, bool>,
+    pub label: String,
+    pub destinations: Vec<String>,
+    pub input_pulses: HashMap<String, bool>,
 }
 
 impl FromStr for Conjunction {
