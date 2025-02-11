@@ -29,9 +29,11 @@ impl Simulation {
         while let Some(pulse) = to_process.pop_front() {
             self.pulses.push(pulse.clone());
 
-            let module = self.modules.get_mut(&pulse.to).unwrap();
-            for output_pulse in module.process(pulse) {
-                to_process.push_back(output_pulse);
+            if let Some(module) = self.modules.get_mut(&pulse.to) {
+                let output_pulses = module.process(pulse);
+                for output_pulse in output_pulses {
+                    to_process.push_back(output_pulse);
+                }
             }
         }
     }
