@@ -27,9 +27,13 @@ mod tests {
             "&inv -> a",
         ];
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
-        let sim = simulation::Simulation::parse(&lines);
+        let mut sim = simulation::Simulation::parse(&lines);
 
-        println!("{:?}", sim);
+        sim.press_button();
+
+        for pulse in sim.pulses {
+            println!("{:?}", pulse);
+        }
 
         // let result = pulses_mut(&workflows, &parts);
 

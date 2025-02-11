@@ -93,7 +93,7 @@ impl Module for Conjunction {
             .map(|dest| Pulse {
                 from: self.label.clone(),
                 to: dest.clone(),
-                on: all_high,
+                on: !all_high,
             })
             .collect()
     }
@@ -320,12 +320,12 @@ mod tests {
                     Pulse {
                         from: "a".to_string(),
                         to: "b".to_string(),
-                        on: false,
+                        on: true,
                     },
                     Pulse {
                         from: "a".to_string(),
                         to: "c".to_string(),
-                        on: false,
+                        on: true,
                     },
                 ]
             );
@@ -357,12 +357,12 @@ mod tests {
                     Pulse {
                         from: "a".to_string(),
                         to: "b".to_string(),
-                        on: true,
+                        on: false,
                     },
                     Pulse {
                         from: "a".to_string(),
                         to: "c".to_string(),
-                        on: true,
+                        on: false,
                     },
                 ]
             );
