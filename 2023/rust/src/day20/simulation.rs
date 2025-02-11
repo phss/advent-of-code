@@ -6,6 +6,13 @@ use std::{
 
 use super::module::{Broadcaster, Conjunction, FlipFlop};
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct Pulse {
+    pub from: String,
+    pub to: String,
+    pub on: bool,
+}
+
 #[derive(Debug)]
 pub struct Simulation {
     pub broadcaster: Broadcaster,

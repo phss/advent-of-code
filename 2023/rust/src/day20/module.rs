@@ -1,9 +1,28 @@
 use std::{collections::HashMap, str::FromStr};
 
+use super::simulation::Pulse;
+
+pub trait Module {
+    fn process(&self, pulse: Pulse) -> Vec<Pulse>;
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Broadcaster {
     pub label: String,
     pub destinations: Vec<String>,
+}
+
+impl Module for Broadcaster {
+    fn process(&self, pulse: Pulse) -> Vec<Pulse> {
+        self.destinations
+            .iter()
+            .map(|dest| Pulse {
+                from: self.label.clone(),
+                to: dest.clone(),
+                on: pulse.on,
+            })
+            .collect()
+    }
 }
 
 impl FromStr for Broadcaster {
@@ -82,6 +101,41 @@ mod tests {
                     label: "broadcaster".to_string(),
                     destinations: vec!["a".to_string(), "b".to_string(), "c".to_string()]
                 }
+            );
+        }
+
+        #[test]
+        fn process_pulse() {
+            let broadcaster = Broadcaster {
+                label: "broadcaster".to_string(),
+                destinations: vec!["a".to_string(), "b".to_string(), "c".to_string()],
+            };
+
+            let result = broadcaster.process(Pulse {
+                from: "button".to_string(),
+                to: "broadcaster".to_string(),
+                on: false,
+            });
+
+            assert_eq!(
+                result,
+                vec![
+                    Pulse {
+                        from: "broadcaster".to_string(),
+                        to: "a".to_string(),
+                        on: false,
+                    },
+                    Pulse {
+                        from: "broadcaster".to_string(),
+                        to: "b".to_string(),
+                        on: false,
+                    },
+                    Pulse {
+                        from: "broadcaster".to_string(),
+                        to: "c".to_string(),
+                        on: false,
+                    },
+                ]
             );
         }
     }
