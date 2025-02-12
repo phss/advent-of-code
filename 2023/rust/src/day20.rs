@@ -5,14 +5,12 @@ use crate::parser;
 
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day20.txt").unwrap();
-    let mut sim = simulation::Simulation::parse(&lines, false);
+    let mut sim = simulation::Simulation::parse(&lines);
     pulse_mults(&mut sim)
 }
 
 pub fn part2() -> usize {
-    let lines: Vec<String> = parser::read("data/day20.txt").unwrap();
-    let mut sim = simulation::Simulation::parse(&lines, true);
-    pulse_mults(&mut sim)
+    0
 }
 
 fn pulse_mults(sim: &mut simulation::Simulation) -> usize {
@@ -39,7 +37,7 @@ mod tests {
             "&inv -> a",
         ];
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
-        let mut sim = simulation::Simulation::parse(&lines, false);
+        let mut sim = simulation::Simulation::parse(&lines);
 
         let result = pulse_mults(&mut sim);
 
@@ -56,7 +54,7 @@ mod tests {
             "&con -> output",
         ];
         let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
-        let mut sim = simulation::Simulation::parse(&lines, false);
+        let mut sim = simulation::Simulation::parse(&lines);
 
         let result = pulse_mults(&mut sim);
 

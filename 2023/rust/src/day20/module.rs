@@ -4,7 +4,6 @@ use super::simulation::Pulse;
 
 pub trait Module {
     fn process(&mut self, pulse: Pulse) -> Vec<Pulse>;
-    fn reset(&mut self);
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -24,8 +23,6 @@ impl Module for Broadcaster {
             })
             .collect()
     }
-
-    fn reset(&mut self) {}
 }
 
 impl FromStr for Broadcaster {
@@ -64,10 +61,6 @@ impl Module for FlipFlop {
             })
             .collect()
     }
-
-    fn reset(&mut self) {
-        self.on = false;
-    }
 }
 
 impl FromStr for FlipFlop {
@@ -103,12 +96,6 @@ impl Module for Conjunction {
                 on: !all_high,
             })
             .collect()
-    }
-
-    fn reset(&mut self) {
-        for input in self.input_pulses.values_mut() {
-            *input = false;
-        }
     }
 }
 
