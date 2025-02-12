@@ -10,7 +10,9 @@ pub fn part1() -> usize {
 }
 
 pub fn part2() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day20.txt").unwrap();
+    let mut sim = simulation::Simulation::parse(&lines);
+    presses_until_rx(&mut sim)
 }
 
 fn pulse_mults(sim: &mut simulation::Simulation) -> usize {
@@ -21,6 +23,27 @@ fn pulse_mults(sim: &mut simulation::Simulation) -> usize {
     let low_pulses = sim.pulses.iter().filter(|pulse| !pulse.on).count();
 
     high_pulses * low_pulses
+}
+
+fn presses_until_rx(sim: &mut simulation::Simulation) -> usize {
+    let mut presses = 0;
+
+    loop {
+        presses += 1;
+        sim.press_button();
+
+        if sim
+            .pulses
+            .iter()
+            .find(|pulse| !pulse.on && pulse.to == "rx")
+            .is_some()
+        {
+            break;
+        }
+
+        sim.pulses.clear();
+    }
+    presses
 }
 
 #[cfg(test)]
