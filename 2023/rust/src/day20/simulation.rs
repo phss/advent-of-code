@@ -15,6 +15,7 @@ pub struct Pulse {
 pub struct Simulation {
     pub pulses: Vec<Pulse>,
     pub modules: HashMap<String, Box<dyn Module>>,
+    pub reset_enabled: bool,
 }
 
 impl Simulation {
@@ -29,7 +30,11 @@ impl Simulation {
         while let Some(pulse) = to_process.pop_front() {
             self.pulses.push(pulse.clone());
 
-            if let Some(module) = self.modules.get_mut(&pulse.to) {
+            if self.reset_enabled && pulse.to == "rx" {
+                for module in self.modules.values_mut() {
+                    module.reset();
+                }
+            } else if let Some(module) = self.modules.get_mut(&pulse.to) {
                 let output_pulses = module.process(pulse);
                 for output_pulse in output_pulses {
                     to_process.push_back(output_pulse);
@@ -38,7 +43,7 @@ impl Simulation {
         }
     }
 
-    pub fn parse(lines: &Vec<String>) -> Self {
+    pub fn parse(lines: &Vec<String>, reset_enabled: bool) -> Self {
         let broadcaster: Broadcaster = Simulation::filter_and_parse(lines, "broadcaster")
             .next()
             .unwrap();
@@ -90,6 +95,7 @@ impl Simulation {
         Simulation {
             pulses: Vec::new(),
             modules,
+            reset_enabled,
         }
     }
 
