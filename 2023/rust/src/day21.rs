@@ -9,9 +9,7 @@ pub fn part1() -> usize {
 }
 
 pub fn part2() -> usize {
-    let lines: Vec<String> = parser::read("data/day21.txt").unwrap();
-    let map = parse(&lines);
-    calculate_solution(&map)
+    calculate_solution()
 }
 
 fn plots_after_steps(map: &Vec<Vec<char>>, steps: usize) -> usize {
@@ -52,18 +50,31 @@ fn plots_after_steps(map: &Vec<Vec<char>>, steps: usize) -> usize {
     visited.len()
 }
 
-fn calculate_solution(map: &Vec<Vec<char>>) -> usize {
-    println!("{}", quadractic(1));
-    println!("{}", quadractic(2));
-    println!("{}", quadractic(3));
-    println!("{}", quadractic(4));
-    quadractic(25501365 / 131)
+fn calculate_solution() -> usize {
+    // println!("{}", quadractic(1));
+    // println!("{}", infinite_plots_after_steps(map, 65 + 131 * 1));
+    // println!("{}", quadractic(2));
+    // println!("{}", infinite_plots_after_steps(map, 65 + 131 * 2));
+    // println!("{}", quadractic(3));
+    // println!("{}", infinite_plots_after_steps(map, 65 + 131 * 3));
+    // println!("{}", quadractic(4));
+    // println!("{}", infinite_plots_after_steps(map, 65 + 131 * 4));
+    // println!("{}", quadractic(5));
+    // quadractic(25501365 / 131)
+    let blah = 65 + (131 * 202300);
+    println!("{blah}");
+
+    let blah = (blah - 65) / 131;
+    println!("{blah}");
+
+    quadractic(202301)
 }
 
 fn quadractic(x: usize) -> usize {
     14898 * x.pow(2) - 14799 * x + 3671
 }
 
+#[allow(dead_code)]
 fn infinite_plots_after_steps(map: &Vec<Vec<char>>, steps: usize) -> usize {
     let width = map[0].len() as isize;
     let height = map.len() as isize;
