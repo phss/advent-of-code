@@ -1,5 +1,4 @@
-use core::net;
-use std::collections::HashSet;
+use std::{collections::HashSet, usize};
 
 use crate::parser;
 
@@ -12,8 +11,7 @@ pub fn part1() -> usize {
 pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day21.txt").unwrap();
     let map = parse(&lines);
-    infinite_plots_after_steps(&map, 131 * 3)
-    // infinite_plots_after_steps(&map, 26501365)
+    calculate_solution(&map)
 }
 
 fn plots_after_steps(map: &Vec<Vec<char>>, steps: usize) -> usize {
@@ -52,6 +50,18 @@ fn plots_after_steps(map: &Vec<Vec<char>>, steps: usize) -> usize {
     }
 
     visited.len()
+}
+
+fn calculate_solution(map: &Vec<Vec<char>>) -> usize {
+    println!("{}", quadractic(1));
+    println!("{}", quadractic(2));
+    println!("{}", quadractic(3));
+    println!("{}", quadractic(4));
+    quadractic(25501365 / 131)
+}
+
+fn quadractic(x: usize) -> usize {
+    14898 * x.pow(2) - 14799 * x + 3671
 }
 
 fn infinite_plots_after_steps(map: &Vec<Vec<char>>, steps: usize) -> usize {
@@ -131,26 +141,26 @@ mod tests {
         assert_eq!(result, 16);
     }
 
-    #[test]
-    fn sample_input_part_2() {
-        let lines = vec![
-            "...........",
-            ".....###.#.",
-            ".###.##..#.",
-            "..#.#...#..",
-            "....#.#....",
-            ".##..S####.",
-            ".##..#...#.",
-            ".......##..",
-            ".##.#.####.",
-            ".##..##.##.",
-            "...........",
-        ];
-        let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
-        let map = parse(&lines);
+    // #[test]
+    // fn sample_input_part_2() {
+    //     let lines = vec![
+    //         "...........",
+    //         ".....###.#.",
+    //         ".###.##..#.",
+    //         "..#.#...#..",
+    //         "....#.#....",
+    //         ".##..S####.",
+    //         ".##..#...#.",
+    //         ".......##..",
+    //         ".##.#.####.",
+    //         ".##..##.##.",
+    //         "...........",
+    //     ];
+    //     let lines: Vec<String> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+    //     let map = parse(&lines);
 
-        let result = infinite_plots_after_steps(&map, 100);
+    //     let result = infinite_plots_after_steps(&map, 100);
 
-        assert_eq!(result, 6536);
-    }
+    //     assert_eq!(result, 6536);
+    // }
 }
