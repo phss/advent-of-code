@@ -2,10 +2,27 @@ use std::str::FromStr;
 
 use crate::parser;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Brick {
     from: (usize, usize, usize),
     to: (usize, usize, usize),
+}
+
+impl Brick {
+    fn is_lower(&self, other: &Brick) -> bool {
+        self.to.2 < other.from.2
+    }
+
+    fn overlaps(&self, other: &Brick) -> bool {
+        self.from.0 <= other.to.0
+            && self.to.0 >= other.from.0
+            && self.from.1 <= other.to.1
+            && self.to.1 >= other.from.1
+    }
+
+    fn distance(&self, other: &Brick) -> usize {
+        other.from.2 - self.to.2
+    }
 }
 
 impl FromStr for Brick {
@@ -31,15 +48,33 @@ impl FromStr for Brick {
 }
 
 pub fn part1() -> usize {
-    let bricks: Vec<Brick> = parser::read("data/day22.txt").unwrap();
-    count_desintegrate(&bricks)
+    let mut bricks: Vec<Brick> = parser::read("data/day22.txt").unwrap();
+    count_desintegrate(&mut bricks)
 }
 
 pub fn part2() -> usize {
     0
 }
 
-fn count_desintegrate(bricks: &Vec<Brick>) -> usize {
+fn count_desintegrate(bricks: &mut Vec<Brick>) -> usize {
+    bricks.sort_by_key(|b| b.from.2);
+    let mut blah: Vec<Brick> = Vec::new();
+
+    for brick in bricks.iter_mut() {
+        let fall_height = blah
+            .iter()
+            .filter(|b| b.is_lower(brick) && b.overlaps(brick))
+            .map(|b| b.distance(brick))
+            .min()
+            .unwrap_or(0);
+
+        brick.from.2 -= fall_height;
+        brick.to.2 -= fall_height;
+
+        println!("{:?} {}", brick, fall_height);
+        blah.push(brick.clone());
+    }
+
     0
 }
 
@@ -58,9 +93,9 @@ mod tests {
             "0,1,6~2,1,6",
             "1,1,8~1,1,9",
         ];
-        let bricks: Vec<Brick> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+        let mut bricks: Vec<Brick> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
 
-        let result = count_desintegrate(&bricks);
+        let result = count_desintegrate(&mut bricks);
 
         assert_eq!(result, 5);
     }
