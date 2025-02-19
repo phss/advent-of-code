@@ -14,17 +14,19 @@ impl Brick {
     }
 
     fn overlaps(&self, other: &Brick) -> bool {
-        self.from.0 <= other.to.0
-            && self.to.0 >= other.from.0
-            && self.from.1 <= other.to.1
-            && self.to.1 >= other.from.1
+        let (sx1, sy1, _) = self.from;
+        let (sx2, sy2, _) = self.to;
+        let (ox1, oy1, _) = other.from;
+        let (ox2, oy2, _) = other.to;
+
+        sx1 <= ox2 && sx2 >= ox1 && sy1 <= oy2 && sy2 >= oy1
     }
 
     fn distance(&self, other: &Brick) -> usize {
         other.from.2 - self.to.2 - 1
     }
 
-    fn supported_by(&self, other: &Brick) -> bool {
+    fn above(&self, other: &Brick) -> bool {
         self.from.2 == (other.to.2 + 1)
     }
 }
@@ -70,24 +72,26 @@ fn count_desintegrate(bricks: &mut Vec<Brick>) -> usize {
             .filter(|b| b.is_lower(brick) && b.overlaps(brick))
             .map(|b| b.distance(brick))
             .min()
-            .unwrap_or(0);
+            .unwrap_or(brick.from.2 - 1);
 
         brick.from.2 -= fall_height;
         brick.to.2 -= fall_height;
         fallen_bricks.push(brick.clone());
     }
 
+    fallen_bricks.sort_by_key(|b| b.from.2);
+
     let mut count = 0;
     for brick in fallen_bricks.iter() {
         let supported_bricks: Vec<&Brick> = fallen_bricks
             .iter()
-            .filter(|b| b.supported_by(brick) && b.overlaps(brick))
+            .filter(|b| b.above(brick) && b.overlaps(brick))
             .collect();
 
         if supported_bricks.iter().all(|supported| {
             fallen_bricks
                 .iter()
-                .filter(|b| supported.supported_by(b) && supported.overlaps(b))
+                .filter(|b| supported.above(b) && supported.overlaps(b))
                 .count()
                 > 1
         }) {
@@ -121,5 +125,30 @@ mod tests {
     }
 
     #[test]
+    fn sample_input_part_1_another() {
+        let lines = vec!["5,1,1~1,1,1", "1,5,2~1,1,2"];
+        let mut bricks: Vec<Brick> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+
+        let result = count_desintegrate(&mut bricks);
+
+        assert_eq!(result, 2);
+    }
+
+    #[test]
     fn sample_input_part_2() {}
+
+    #[test]
+    fn overlaps() {
+        let a = Brick {
+            from: (0, 5, 158),
+            to: (3, 5, 158),
+        };
+
+        let b = Brick {
+            from: (1, 8, 158),
+            to: (3, 8, 158),
+        };
+
+        assert_eq!(a.overlaps(&b), false);
+    }
 }
