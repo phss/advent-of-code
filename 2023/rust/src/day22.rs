@@ -21,7 +21,11 @@ impl Brick {
     }
 
     fn distance(&self, other: &Brick) -> usize {
-        other.from.2 - self.to.2
+        other.from.2 - self.to.2 - 1
+    }
+
+    fn supported_by(&self, other: &Brick) -> bool {
+        self.from.2 == (other.to.2 + 1)
     }
 }
 
@@ -58,10 +62,10 @@ pub fn part2() -> usize {
 
 fn count_desintegrate(bricks: &mut Vec<Brick>) -> usize {
     bricks.sort_by_key(|b| b.from.2);
-    let mut blah: Vec<Brick> = Vec::new();
+    let mut fallen_bricks: Vec<Brick> = Vec::new();
 
     for brick in bricks.iter_mut() {
-        let fall_height = blah
+        let fall_height = fallen_bricks
             .iter()
             .filter(|b| b.is_lower(brick) && b.overlaps(brick))
             .map(|b| b.distance(brick))
@@ -70,12 +74,28 @@ fn count_desintegrate(bricks: &mut Vec<Brick>) -> usize {
 
         brick.from.2 -= fall_height;
         brick.to.2 -= fall_height;
-
-        println!("{:?} {}", brick, fall_height);
-        blah.push(brick.clone());
+        fallen_bricks.push(brick.clone());
     }
 
-    0
+    let mut count = 0;
+    for brick in fallen_bricks.iter() {
+        let supported_bricks: Vec<&Brick> = fallen_bricks
+            .iter()
+            .filter(|b| b.supported_by(brick) && b.overlaps(brick))
+            .collect();
+
+        if supported_bricks.iter().all(|supported| {
+            fallen_bricks
+                .iter()
+                .filter(|b| supported.supported_by(b) && supported.overlaps(b))
+                .count()
+                > 1
+        }) {
+            count += 1;
+        }
+    }
+
+    count
 }
 
 #[cfg(test)]
