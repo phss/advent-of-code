@@ -59,10 +59,51 @@ pub fn part1() -> usize {
 }
 
 pub fn part2() -> usize {
-    0
+    let mut bricks: Vec<Brick> = parser::read("data/day22.txt").unwrap();
+    count_chain_desintegrate(&mut bricks)
 }
 
 fn count_desintegrate(bricks: &mut Vec<Brick>) -> usize {
+    bricks.sort_by_key(|b| b.from.2);
+    let mut fallen_bricks: Vec<Brick> = Vec::new();
+
+    for brick in bricks.iter_mut() {
+        let fall_height = fallen_bricks
+            .iter()
+            .filter(|b| b.is_lower(brick) && b.overlaps(brick))
+            .map(|b| b.distance(brick))
+            .min()
+            .unwrap_or(brick.from.2 - 1);
+
+        brick.from.2 -= fall_height;
+        brick.to.2 -= fall_height;
+        fallen_bricks.push(brick.clone());
+    }
+
+    fallen_bricks.sort_by_key(|b| b.from.2);
+
+    let mut count = 0;
+    for brick in fallen_bricks.iter() {
+        let supported_bricks: Vec<&Brick> = fallen_bricks
+            .iter()
+            .filter(|b| b.above(brick) && b.overlaps(brick))
+            .collect();
+
+        if supported_bricks.iter().all(|supported| {
+            fallen_bricks
+                .iter()
+                .filter(|b| supported.above(b) && supported.overlaps(b))
+                .count()
+                > 1
+        }) {
+            count += 1;
+        }
+    }
+
+    count
+}
+
+fn count_chain_desintegrate(bricks: &mut Vec<Brick>) -> usize {
     bricks.sort_by_key(|b| b.from.2);
     let mut fallen_bricks: Vec<Brick> = Vec::new();
 
@@ -135,7 +176,22 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let lines = vec![
+            "1,0,1~1,2,1",
+            "0,0,2~2,0,2",
+            "0,2,3~2,2,3",
+            "0,0,4~0,2,4",
+            "2,0,5~2,2,5",
+            "0,1,6~2,1,6",
+            "1,1,8~1,1,9",
+        ];
+        let mut bricks: Vec<Brick> = lines.into_iter().map(|s| s.parse().unwrap()).collect();
+
+        let result = count_chain_desintegrate(&mut bricks);
+
+        assert_eq!(result, 7);
+    }
 
     #[test]
     fn overlaps() {
