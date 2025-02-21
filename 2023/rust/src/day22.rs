@@ -64,21 +64,7 @@ pub fn part2() -> usize {
 }
 
 fn count_desintegrate(bricks: &mut Vec<Brick>) -> usize {
-    bricks.sort_by_key(|b| b.from.2);
-    let mut fallen_bricks: Vec<Brick> = Vec::new();
-
-    for brick in bricks.iter_mut() {
-        let fall_height = fallen_bricks
-            .iter()
-            .filter(|b| b.is_lower(brick) && b.overlaps(brick))
-            .map(|b| b.distance(brick))
-            .min()
-            .unwrap_or(brick.from.2 - 1);
-
-        brick.from.2 -= fall_height;
-        brick.to.2 -= fall_height;
-        fallen_bricks.push(brick.clone());
-    }
+    let fallen_bricks = fall(bricks);
 
     let mut count = 0;
     for brick in fallen_bricks.iter() {
@@ -102,21 +88,7 @@ fn count_desintegrate(bricks: &mut Vec<Brick>) -> usize {
 }
 
 fn count_chain_desintegrate(bricks: &mut Vec<Brick>) -> usize {
-    bricks.sort_by_key(|b| b.from.2);
-    let mut fallen_bricks: Vec<Brick> = Vec::new();
-
-    for brick in bricks.iter_mut() {
-        let fall_height = fallen_bricks
-            .iter()
-            .filter(|b| b.is_lower(brick) && b.overlaps(brick))
-            .map(|b| b.distance(brick))
-            .min()
-            .unwrap_or(brick.from.2 - 1);
-
-        brick.from.2 -= fall_height;
-        brick.to.2 -= fall_height;
-        fallen_bricks.push(brick.clone());
-    }
+    let fallen_bricks = fall(bricks);
 
     let max_height = fallen_bricks.last().unwrap().from.2;
 
@@ -146,6 +118,25 @@ fn count_chain_desintegrate(bricks: &mut Vec<Brick>) -> usize {
     }
 
     count
+}
+
+fn fall(bricks: &mut Vec<Brick>) -> Vec<Brick> {
+    bricks.sort_by_key(|b| b.from.2);
+    let mut fallen_bricks: Vec<Brick> = Vec::new();
+
+    for brick in bricks.iter_mut() {
+        let fall_height = fallen_bricks
+            .iter()
+            .filter(|b| b.is_lower(brick) && b.overlaps(brick))
+            .map(|b| b.distance(brick))
+            .min()
+            .unwrap_or(brick.from.2 - 1);
+
+        brick.from.2 -= fall_height;
+        brick.to.2 -= fall_height;
+        fallen_bricks.push(brick.clone());
+    }
+    fallen_bricks
 }
 
 #[cfg(test)]
