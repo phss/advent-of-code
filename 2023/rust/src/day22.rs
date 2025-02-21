@@ -1,8 +1,8 @@
-use std::str::FromStr;
+use std::{collections::HashSet, str::FromStr};
 
 use crate::parser;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 struct Brick {
     from: (usize, usize, usize),
     to: (usize, usize, usize),
@@ -80,8 +80,6 @@ fn count_desintegrate(bricks: &mut Vec<Brick>) -> usize {
         fallen_bricks.push(brick.clone());
     }
 
-    fallen_bricks.sort_by_key(|b| b.from.2);
-
     let mut count = 0;
     for brick in fallen_bricks.iter() {
         let supported_bricks: Vec<&Brick> = fallen_bricks
@@ -120,24 +118,31 @@ fn count_chain_desintegrate(bricks: &mut Vec<Brick>) -> usize {
         fallen_bricks.push(brick.clone());
     }
 
-    fallen_bricks.sort_by_key(|b| b.from.2);
+    let max_height = fallen_bricks.last().unwrap().from.2;
 
     let mut count = 0;
     for brick in fallen_bricks.iter() {
-        let supported_bricks: Vec<&Brick> = fallen_bricks
-            .iter()
-            .filter(|b| b.above(brick) && b.overlaps(brick))
-            .collect();
+        let mut desintegrated = HashSet::new();
+        desintegrated.insert(brick);
 
-        if supported_bricks.iter().all(|supported| {
-            fallen_bricks
-                .iter()
-                .filter(|b| supported.above(b) && supported.overlaps(b))
-                .count()
-                > 1
-        }) {
-            count += 1;
+        for height in brick.to.2 + 1..=max_height {
+            for candidate in fallen_bricks.iter() {
+                if candidate.from.2 != height {
+                    continue;
+                }
+
+                let all_desintegrated = fallen_bricks
+                    .iter()
+                    .filter(|b| candidate.above(b) && candidate.overlaps(b))
+                    .all(|b| desintegrated.contains(b));
+
+                if all_desintegrated {
+                    desintegrated.insert(candidate);
+                }
+            }
         }
+
+        count += desintegrated.len() - 1;
     }
 
     count
