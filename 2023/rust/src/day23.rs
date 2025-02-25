@@ -11,8 +11,8 @@ pub fn part1() -> usize {
 pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day23.txt").unwrap();
     let map = parse(&lines);
-    let (edges, weights) = to_graph(&map, (1, 0), (21, 22));
-    longest_hike_no_slopes(&edges, &weights, Vec::new(), (1, 0), (139, 140), 0)
+    let (edges, weights) = to_graph(&map, (1, 0), (139, 140));
+    longest_hike_no_slopes(&edges, &weights, HashSet::new(), (1, 0), (139, 140), 0)
 }
 
 fn longest_hike(
@@ -55,7 +55,7 @@ fn to_graph(
     from: (usize, usize),
     to: (usize, usize),
 ) -> (HashMap<Node, HashSet<Node>>, HashMap<(Node, Node), usize>) {
-    let node_symbols = ['>', '<', 'v', '^'];
+    let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
     let width = map[0].len();
     let height = map.len();
 
@@ -64,7 +64,13 @@ fn to_graph(
     nodes.insert(to);
     for x in 0..width {
         for y in 0..height {
-            if node_symbols.contains(&map[y][x]) {
+            let is_node = directions.iter().all(|(dir_x, dir_y)| {
+                let next_x = x.checked_add_signed(*dir_x).unwrap_or(0).min(width - 1);
+                let next_y = y.checked_add_signed(*dir_y).unwrap_or(0).min(height - 1);
+                let next_char = map[next_y][next_x];
+                !(next_x == x && next_y == y) && next_char != '.'
+            }) && map[y][x] == '.';
+            if is_node {
                 nodes.insert((x, y));
             }
         }
@@ -73,13 +79,13 @@ fn to_graph(
     let mut edges = HashMap::new();
     let mut weights = HashMap::new();
 
-    for node in nodes {
+    for node_ref in &nodes {
+        let node = *node_ref;
         let mut visited = HashSet::new();
         visited.insert(node);
         let mut search_heap = VecDeque::new();
         search_heap.push_back((node, 0));
 
-        let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
         while let Some(((x, y), distance)) = search_heap.pop_front() {
             for (dir_x, dir_y) in directions {
                 let next_x = x.checked_add_signed(dir_x).unwrap_or(0).min(width - 1);
@@ -92,7 +98,7 @@ fn to_graph(
                 }
                 visited.insert(next_position);
 
-                if next_char != '.' || next_position == from || next_position == to {
+                if nodes.contains(&next_position) {
                     edges
                         .entry(node)
                         .or_insert(HashSet::new())
@@ -116,18 +122,17 @@ fn to_graph(
 fn longest_hike_no_slopes(
     edges: &HashMap<Node, HashSet<Node>>,
     weights: &HashMap<(Node, Node), usize>,
-    visited: Vec<(usize, usize)>,
+    visited: HashSet<(usize, usize)>,
     from: (usize, usize),
     to: (usize, usize),
     current_distance: usize,
 ) -> usize {
     if from == to {
-        println!("{:?} -> {:?}", current_distance, visited);
         return current_distance;
     }
 
     let mut new_visited = visited.clone();
-    new_visited.push(from);
+    new_visited.insert(from);
 
     let mut max_steps = 0;
     for next_node in edges.get(&from).unwrap() {
@@ -224,17 +229,7 @@ mod tests {
         let map = parse(&lines);
 
         let (edges, weights) = to_graph(&map, (1, 0), (21, 22));
-        // for (node, conns) in edges.iter() {
-        //     println!("{:?} -> {:?}", node, conns);
-        // }
-        // println!("");
-
-        // for (node, conns) in &weights {
-        //     println!("{:?} -> {:?}", node, conns);
-        // }
-        // println!("");
-
-        let result = longest_hike_no_slopes(&edges, &weights, Vec::new(), (1, 0), (21, 22), 0);
+        let result = longest_hike_no_slopes(&edges, &weights, HashSet::new(), (1, 0), (21, 22), 0);
 
         assert_eq!(result, 154);
     }
