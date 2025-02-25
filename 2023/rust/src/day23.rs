@@ -11,7 +11,8 @@ pub fn part1() -> usize {
 pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day23.txt").unwrap();
     let map = parse(&lines);
-    longest_hike_no_slopes(&map, HashSet::new(), (1, 0), (139, 140))
+    let (edges, weights) = to_graph(&map, (1, 0), (21, 22));
+    longest_hike_no_slopes(&edges, &weights, Vec::new(), (1, 0), (139, 140), 0)
 }
 
 fn longest_hike(
@@ -54,46 +55,57 @@ fn to_graph(
     from: (usize, usize),
     to: (usize, usize),
 ) -> (HashMap<Node, HashSet<Node>>, HashMap<(Node, Node), usize>) {
-    let mut edges = HashMap::new();
-    let mut weights = HashMap::new();
-
+    let node_symbols = ['>', '<', 'v', '^'];
     let width = map[0].len();
     let height = map.len();
 
-    let mut visited = HashSet::new();
-    visited.insert(from);
-    let mut search_heap = VecDeque::new();
-    search_heap.push_back((from, from, 0));
-
-    let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-    while let Some((node, (x, y), distance)) = search_heap.pop_front() {
-        for (dir_x, dir_y) in directions {
-            let next_x = x.checked_add_signed(dir_x).unwrap_or(0).min(width - 1);
-            let next_y = y.checked_add_signed(dir_y).unwrap_or(0).min(height - 1);
-            let next_position = (next_x, next_y);
-            let next_char = map[next_y][next_x];
-
-            if visited.contains(&next_position) || next_char == '#' {
-                continue;
+    let mut nodes = HashSet::new();
+    nodes.insert(from);
+    nodes.insert(to);
+    for x in 0..width {
+        for y in 0..height {
+            if node_symbols.contains(&map[y][x]) {
+                nodes.insert((x, y));
             }
+        }
+    }
 
-            visited.insert(next_position);
+    let mut edges = HashMap::new();
+    let mut weights = HashMap::new();
 
-            if next_char != '.' || next_position == to {
-                edges
-                    .entry(node)
-                    .or_insert(HashSet::new())
-                    .insert(next_position);
-                edges
-                    .entry(next_position)
-                    .or_insert(HashSet::new())
-                    .insert(node);
-                weights.insert((node, next_position), distance + 1);
-                weights.insert((next_position, node), distance + 1);
+    for node in nodes {
+        let mut visited = HashSet::new();
+        visited.insert(node);
+        let mut search_heap = VecDeque::new();
+        search_heap.push_back((node, 0));
 
-                search_heap.push_back((next_position, next_position, 0));
-            } else {
-                search_heap.push_back((node, next_position, distance + 1));
+        let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+        while let Some(((x, y), distance)) = search_heap.pop_front() {
+            for (dir_x, dir_y) in directions {
+                let next_x = x.checked_add_signed(dir_x).unwrap_or(0).min(width - 1);
+                let next_y = y.checked_add_signed(dir_y).unwrap_or(0).min(height - 1);
+                let next_position = (next_x, next_y);
+                let next_char = map[next_y][next_x];
+
+                if visited.contains(&next_position) || next_char == '#' {
+                    continue;
+                }
+                visited.insert(next_position);
+
+                if next_char != '.' || next_position == from || next_position == to {
+                    edges
+                        .entry(node)
+                        .or_insert(HashSet::new())
+                        .insert(next_position);
+                    edges
+                        .entry(next_position)
+                        .or_insert(HashSet::new())
+                        .insert(node);
+                    weights.insert((node, next_position), distance + 1);
+                    weights.insert((next_position, node), distance + 1);
+                } else {
+                    search_heap.push_back((next_position, distance + 1));
+                }
             }
         }
     }
@@ -102,38 +114,37 @@ fn to_graph(
 }
 
 fn longest_hike_no_slopes(
-    map: &Vec<Vec<char>>,
-    visited: HashSet<(usize, usize)>,
+    edges: &HashMap<Node, HashSet<Node>>,
+    weights: &HashMap<(Node, Node), usize>,
+    visited: Vec<(usize, usize)>,
     from: (usize, usize),
     to: (usize, usize),
+    current_distance: usize,
 ) -> usize {
     if from == to {
-        return visited.len();
+        println!("{:?} -> {:?}", current_distance, visited);
+        return current_distance;
     }
 
     let mut new_visited = visited.clone();
-    new_visited.insert(from);
+    new_visited.push(from);
 
-    let (x, y) = from;
     let mut max_steps = 0;
-
-    let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-    for (dir_x, dir_y) in directions {
-        let next_x = x.checked_add_signed(dir_x).unwrap_or(0);
-        let next_y = y.checked_add_signed(dir_y).unwrap_or(0);
-        let next_position = (next_x, next_y);
-        let next_char = map[next_y][next_x];
-
-        if new_visited.contains(&next_position) || next_char == '#' {
+    for next_node in edges.get(&from).unwrap() {
+        if new_visited.contains(next_node) {
             continue;
         }
 
-        max_steps = max_steps.max(longest_hike_no_slopes(
-            map,
+        let next_max_steps = longest_hike_no_slopes(
+            edges,
+            weights,
             new_visited.clone(),
-            next_position,
+            next_node.clone(),
             to,
-        ));
+            current_distance + weights.get(&(from, next_node.clone())).unwrap(),
+        );
+
+        max_steps = max_steps.max(next_max_steps);
     }
 
     max_steps
@@ -213,17 +224,17 @@ mod tests {
         let map = parse(&lines);
 
         let (edges, weights) = to_graph(&map, (1, 0), (21, 22));
-        for (node, conns) in edges {
-            println!("{:?} -> {:?}", node, conns);
-        }
-        println!("");
+        // for (node, conns) in edges.iter() {
+        //     println!("{:?} -> {:?}", node, conns);
+        // }
+        // println!("");
 
-        for (node, conns) in weights {
-            println!("{:?} -> {:?}", node, conns);
-        }
-        println!("");
+        // for (node, conns) in &weights {
+        //     println!("{:?} -> {:?}", node, conns);
+        // }
+        // println!("");
 
-        let result = longest_hike_no_slopes(&map, HashSet::new(), (1, 0), (21, 22));
+        let result = longest_hike_no_slopes(&edges, &weights, Vec::new(), (1, 0), (21, 22), 0);
 
         assert_eq!(result, 154);
     }
