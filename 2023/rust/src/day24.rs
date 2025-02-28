@@ -13,7 +13,10 @@ struct Hailstone {
 impl Hailstone {
     fn points(&self) -> (f64, f64, f64, f64) {
         let (x_1, y_1) = (self.position.0 as f64, self.position.1 as f64);
-        let (x_2, y_2) = (x_1 + self.velocity.0 as f64, y_1 + self.velocity.1 as f64);
+        let (x_2, y_2) = (
+            x_1 + 200.0 * self.velocity.0 as f64,
+            y_1 + 200.0 * self.velocity.1 as f64,
+        );
         (x_1, y_1, x_2, y_2)
     }
 
@@ -21,18 +24,14 @@ impl Hailstone {
         let (sx, sy, _, _) = self.points();
 
         if self.velocity.0 > 0 && x < sx {
-            // println!("1 {} {} {}", self.velocity.0, x, sx);
             return false;
         } else if self.velocity.0 < 0 && x > sx {
-            // println!("2 {} {} {}", self.velocity.0, x, sx);
             return false;
         }
 
         if self.velocity.1 > 0 && y < sy {
-            // println!("3 {} {} {}", self.velocity.1, y, sy);
             return false;
         } else if self.velocity.1 < 0 && y > sy {
-            // println!("4 {} {} {}", self.velocity.1, y, sy);
             return false;
         }
 
@@ -81,7 +80,7 @@ fn count_intersections(hailstones: &Vec<Hailstone>, min: f64, max: f64) -> usize
             let hail_b = hs.get(1).unwrap();
             let intersection = intersection_2d(hail_a, hail_b);
 
-            let result = match intersection {
+            match intersection {
                 Some((x, y)) => {
                     let within_boundaries = x >= min && x <= max && y >= min && y <= max;
                     within_boundaries
@@ -89,15 +88,7 @@ fn count_intersections(hailstones: &Vec<Hailstone>, min: f64, max: f64) -> usize
                         && hail_b.in_the_future((x, y))
                 }
                 None => false,
-            };
-
-            // println!("Hailstone A: {:?}", hail_a);
-            // println!("Hailstone B: {:?}", hail_b);
-            // println!("Intersection: {:?}", intersection);
-            // println!("Result: {:?}", result);
-            // println!();
-
-            result
+            }
         })
         .count()
 }
