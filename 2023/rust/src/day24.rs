@@ -155,8 +155,6 @@ fn sum_of_perfect_throw(hailstones: &Vec<Hailstone>) -> usize {
     let denominator = yr2 * vxr1;
     let t1 = numerator / denominator;
 
-    println!("{t1} {t2}");
-
     let cx1 = x1 + (t1 * vx1);
     let cy1 = y1 + (t1 * vy1);
     let cz1 = z1 + (t1 * vz1);
@@ -165,20 +163,13 @@ fn sum_of_perfect_throw(hailstones: &Vec<Hailstone>) -> usize {
     let cy2 = y2 + (t2 * vy2);
     let cz2 = z2 + (t2 * vz2);
 
-    println!("{cx1} {cy1} {cz1}");
-    println!("{cx2} {cy2} {cz2}");
-
     let xm = (cx2 - cx1) / (t2 - t1);
     let ym = (cy2 - cy1) / (t2 - t1);
     let zm = (cz2 - cz1) / (t2 - t1);
 
-    println!("{xm} {ym} {zm}");
-
     let xc = cx1 - (xm * t1);
     let yc = cy1 - (ym * t1);
     let zc = cz1 - (zm * t1);
-
-    println!("{xc} {yc} {zc}");
 
     (xc + yc + zc) as usize
 }
