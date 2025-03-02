@@ -2,6 +2,8 @@ mod graph;
 
 use std::str::FromStr;
 
+use graph::Graph;
+
 use crate::parser;
 
 #[derive(Debug)]
@@ -11,10 +13,10 @@ struct Connection {
 }
 
 impl Connection {
-    fn to_pairs(&self) -> Vec<(String, String)> {
+    fn to_pairs(&self) -> Vec<(&str, &str)> {
         self.others
             .iter()
-            .map(|other| (self.component.clone(), other.clone()))
+            .map(|other| (self.component.as_str(), other.as_str()))
             .collect()
     }
 }
@@ -42,7 +44,10 @@ pub fn part2() -> usize {
 }
 
 fn disconnect_and_sum(connections: &Vec<Connection>) -> usize {
-    let pairs: Vec<(String, String)> = connections.iter().flat_map(Connection::to_pairs).collect();
+    let pairs: Vec<(&str, &str)> = connections.iter().flat_map(Connection::to_pairs).collect();
+    let graph = Graph::from_pairs(pairs);
+
+    println!("{:?}", graph);
 
     0
 }
