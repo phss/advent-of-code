@@ -1,10 +1,8 @@
-use std::{
-    collections::{HashMap, HashSet},
-    str::FromStr,
-};
+mod graph;
+
+use std::str::FromStr;
 
 use crate::parser;
-use rand::seq::IteratorRandom;
 
 #[derive(Debug)]
 struct Connection {
@@ -45,45 +43,8 @@ pub fn part2() -> usize {
 
 fn disconnect_and_sum(connections: &Vec<Connection>) -> usize {
     let pairs: Vec<(String, String)> = connections.iter().flat_map(Connection::to_pairs).collect();
-    let edges = to_graph(pairs);
-
-    let blah = karger_min_cut(edges);
-    println!("{:?}", blah);
 
     0
-}
-
-fn karger_min_cut(
-    init: HashMap<String, HashSet<(String, usize)>>,
-) -> HashMap<String, HashSet<(String, usize)>> {
-    let mut edges = init.clone();
-    let mut rng = rand::rng();
-
-    while edges.len() > 2 {
-        let a = edges.keys().choose(&mut rng).unwrap().clone();
-        let mut a_edges = edges.get_mut(&a).unwrap();
-        let b = a_edges.iter().choose(&mut rng).unwrap().0.clone();
-        let b_edges = edges.get(&b).unwrap();
-    }
-
-    edges
-}
-
-fn to_graph(pairs: Vec<(String, String)>) -> HashMap<String, HashSet<(String, usize)>> {
-    let mut edges = HashMap::new();
-
-    for (a, b) in pairs {
-        edges
-            .entry(a.clone())
-            .or_insert(HashSet::new())
-            .insert((b.clone(), 1));
-        edges
-            .entry(b.clone())
-            .or_insert(HashSet::new())
-            .insert((a.clone(), 1));
-    }
-
-    edges
 }
 
 #[cfg(test)]
