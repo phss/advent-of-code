@@ -5,11 +5,11 @@ struct Monkey {
     items_worry: VecDeque<u64>,
     operation: fn(u64) -> u64,
     test_divisibility: u64,
-    if_true_monkey: u32,
-    if_false_monkey: u32,
+    if_true_monkey: usize,
+    if_false_monkey: usize,
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let mut monkeys: Vec<Monkey> = vec![
         Monkey {
             items_worry: VecDeque::from(vec![93, 54, 69, 66, 71]),
@@ -72,7 +72,7 @@ pub fn part1() -> u32 {
     monkey_business(&mut monkeys)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let mut monkeys: Vec<Monkey> = vec![
         Monkey {
             items_worry: VecDeque::from(vec![93, 54, 69, 66, 71]),
@@ -135,7 +135,7 @@ pub fn part2() -> u32 {
     monkey_business_ten_thousand(&mut monkeys)
 }
 
-fn monkey_business(monkeys: &mut Vec<Monkey>) -> u32 {
+fn monkey_business(monkeys: &mut Vec<Monkey>) -> usize {
     let mut inspections = vec![0; monkeys.len()];
 
     for _ in 0..20 {
@@ -159,7 +159,7 @@ fn monkey_business(monkeys: &mut Vec<Monkey>) -> u32 {
     inspections.iter().rev().take(2).product()
 }
 
-fn monkey_business_ten_thousand(monkeys: &mut Vec<Monkey>) -> u32 {
+fn monkey_business_ten_thousand(monkeys: &mut Vec<Monkey>) -> usize {
     let mut inspections = vec![0; monkeys.len()];
 
     let worry_overflow: u64 = monkeys

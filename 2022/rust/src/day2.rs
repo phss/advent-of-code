@@ -72,16 +72,16 @@ impl FromStr for PlayOutcome {
     }
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let strategy_guide: Vec<PlayResponse> = parser::read("data/day2.txt").unwrap();
     total_score(&strategy_guide)
 }
 
-fn total_score(strategy_guide: &Vec<PlayResponse>) -> u32 {
+fn total_score(strategy_guide: &Vec<PlayResponse>) -> usize {
     strategy_guide.iter().map(|play| score(play)).sum()
 }
 
-fn score(play: &PlayResponse) -> u32 {
+fn score(play: &PlayResponse) -> usize {
     let selected_shaped_score = match play {
         PlayResponse(_, Shape::Rock) => 1,
         PlayResponse(_, Shape::Paper) => 2,
@@ -101,19 +101,19 @@ fn score(play: &PlayResponse) -> u32 {
     selected_shaped_score + outcome_score
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let strategy_guide: Vec<PlayOutcome> = parser::read("data/day2.txt").unwrap();
     total_score_from_outcomes(&strategy_guide)
 }
 
-fn total_score_from_outcomes(strategy_guide: &Vec<PlayOutcome>) -> u32 {
+fn total_score_from_outcomes(strategy_guide: &Vec<PlayOutcome>) -> usize {
     strategy_guide
         .iter()
         .map(|play| score_from_outcome(play))
         .sum()
 }
 
-fn score_from_outcome(play: &PlayOutcome) -> u32 {
+fn score_from_outcome(play: &PlayOutcome) -> usize {
     let outcome_score = match play {
         PlayOutcome(_, Outcome::Lose) => 0,
         PlayOutcome(_, Outcome::Draw) => 3,

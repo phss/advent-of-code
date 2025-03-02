@@ -59,17 +59,17 @@ impl Shape {
     }
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day17.txt").unwrap();
     let moves = parse(&lines[0]);
     height_after_rocks(&moves)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     0
 }
 
-fn height_after_rocks(moves: &Vec<Move>) -> u32 {
+fn height_after_rocks(moves: &Vec<Move>) -> usize {
     let mut moves = moves.iter().cycle();
     let mut board: Vec<Vec<bool>> = vec![];
 
@@ -111,7 +111,7 @@ fn height_after_rocks(moves: &Vec<Move>) -> u32 {
         // println!();
     }
 
-    board.len() as u32
+    board.len() as usize
 }
 
 #[allow(dead_code)]

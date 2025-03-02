@@ -97,7 +97,7 @@ impl Display for Packet {
     }
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day13.txt").unwrap();
     let result: Vec<(usize, Ordering)> = lines
         .split(|line| line.is_empty())
@@ -114,15 +114,15 @@ pub fn part1() -> u32 {
         .iter()
         .filter(|(_, result)| result == &Ordering::Less)
         .map(|(i, _)| i + 1)
-        .sum::<usize>() as u32
+        .sum::<usize>() as usize
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day13.txt").unwrap();
     decoder_key(&lines)
 }
 
-fn decoder_key(lines: &Vec<String>) -> u32 {
+fn decoder_key(lines: &Vec<String>) -> usize {
     let mut packets: Vec<Packet> = lines
         .iter()
         .filter(|line| !line.is_empty())
@@ -149,7 +149,7 @@ fn decoder_key(lines: &Vec<String>) -> u32 {
         .position(|packet| packet == &Packet::parse("[[6]]"))
         .unwrap();
 
-    (first_divider_index * second_divider_index) as u32
+    (first_divider_index * second_divider_index) as usize
 }
 
 #[cfg(test)]
@@ -216,7 +216,7 @@ mod tests {
         assert_eq!(
             Packet::parse("[1,1,3,1,1]").cmp(&Packet::parse("[1,[2,[3,[4,[5,6,0]]]],8,9]")),
             Ordering::Less
-        );   
+        );
     }
 
     #[test]

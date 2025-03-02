@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use crate::parser;
 
-struct Section(u32, u32);
+struct Section(usize, usize);
 
 struct ElfPair(Section, Section);
 
@@ -25,17 +25,17 @@ impl FromStr for ElfPair {
     }
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let pairs: Vec<ElfPair> = parser::read("data/day4.txt").unwrap();
     overlapping_pairs(&pairs)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let pairs: Vec<ElfPair> = parser::read("data/day4.txt").unwrap();
     any_overlap_pairs(&pairs)
 }
 
-fn overlapping_pairs(pairs: &Vec<ElfPair>) -> u32 {
+fn overlapping_pairs(pairs: &Vec<ElfPair>) -> usize {
     pairs
         .iter()
         .filter(|pair| is_total_overlap(pair))
@@ -50,7 +50,7 @@ fn is_total_overlap(pair: &ElfPair) -> bool {
     (a <= c && b >= d) || (c <= a && d >= b)
 }
 
-fn any_overlap_pairs(pairs: &Vec<ElfPair>) -> u32 {
+fn any_overlap_pairs(pairs: &Vec<ElfPair>) -> usize {
     pairs
         .iter()
         .filter(|pair| is_any_overlap(pair))

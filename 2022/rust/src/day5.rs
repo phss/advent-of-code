@@ -3,7 +3,7 @@ use std::str::FromStr;
 use crate::parser;
 
 struct Move {
-    quantity: u32,
+    quantity: usize,
     from: usize,
     to: usize,
 }
@@ -18,7 +18,7 @@ impl FromStr for Move {
         let mut words = s.split_ascii_whitespace();
 
         words.next();
-        let quantity: u32 = words.next().unwrap().parse().unwrap();
+        let quantity: usize = words.next().unwrap().parse().unwrap();
 
         words.next();
         let from: usize = words.next().unwrap().parse().unwrap();
@@ -31,7 +31,7 @@ impl FromStr for Move {
 }
 
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let mut inital_crates = vec![
         vec!['R', 'G', 'J', 'B', 'T', 'V', 'Z'],
         vec!['J', 'R', 'V', 'L'],
@@ -49,7 +49,7 @@ pub fn part1() -> u32 {
     0
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let mut inital_crates = vec![
         vec!['R', 'G', 'J', 'B', 'T', 'V', 'Z'],
         vec!['J', 'R', 'V', 'L'],

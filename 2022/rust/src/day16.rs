@@ -10,7 +10,7 @@ use crate::parser;
 #[derive(Debug, Clone, PartialEq)]
 struct Valve {
     name: String,
-    flow_rate: u32,
+    flow_rate: usize,
     tunnels: Vec<String>,
 }
 
@@ -26,7 +26,7 @@ impl FromStr for Valve {
         let part = splitted_line.next().unwrap();
         let mut blah = part.split_ascii_whitespace();
         let name = blah.nth(1).unwrap().to_string();
-        let flow_rate: u32 = blah.nth(2).unwrap()[5..].parse().unwrap();
+        let flow_rate: usize = blah.nth(2).unwrap()[5..].parse().unwrap();
 
         let part = splitted_line.next().unwrap();
         let ti = if part.starts_with("tunnels") { 23 } else { 22 };
@@ -40,28 +40,28 @@ impl FromStr for Valve {
     }
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let valves: Vec<Valve> = parser::read("data/day16.txt").unwrap();
     most_pressure_released(&valves)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let valves: Vec<Valve> = parser::read("data/day16.txt").unwrap();
     most_pressure_released_with_elephant(&valves)
 }
 
-fn most_pressure_released(valves: &Vec<Valve>) -> u32 {
+fn most_pressure_released(valves: &Vec<Valve>) -> usize {
     all_valid_paths(valves, 30)
         .iter()
         .map(|p| p.1)
         .max()
-        .unwrap() as u32
+        .unwrap() as usize
 }
 
-fn most_pressure_released_with_elephant(valves: &Vec<Valve>) -> u32 {
+fn most_pressure_released_with_elephant(valves: &Vec<Valve>) -> usize {
     let mut max_pressure = 0;
     let paths = all_valid_paths(valves, 26);
-    let valid_paths: Vec<&(HashSet<String>, u32)> =
+    let valid_paths: Vec<&(HashSet<String>, usize)> =
         paths.iter().sorted_by_key(|(_, flow)| flow).rev().collect();
 
     for i in 0..valid_paths.len() {
@@ -83,7 +83,7 @@ fn most_pressure_released_with_elephant(valves: &Vec<Valve>) -> u32 {
     max_pressure
 }
 
-fn all_valid_paths(valves: &Vec<Valve>, max_minutes: u32) -> Vec<(HashSet<String>, u32)> {
+fn all_valid_paths(valves: &Vec<Valve>, max_minutes: usize) -> Vec<(HashSet<String>, usize)> {
     let mut all_paths = vec![];
     let distances = distances_between_valves(&valves);
 
@@ -94,7 +94,7 @@ fn all_valid_paths(valves: &Vec<Valve>, max_minutes: u32) -> Vec<(HashSet<String
         }
     }
 
-    let mut pressures: Vec<(String, HashSet<String>, u32, u32)> =
+    let mut pressures: Vec<(String, HashSet<String>, usize, usize)> =
         vec![("AA".to_string(), HashSet::new(), 0, 0)];
 
     while pressures.len() > 0 {
@@ -123,7 +123,7 @@ fn all_valid_paths(valves: &Vec<Valve>, max_minutes: u32) -> Vec<(HashSet<String
     all_paths
 }
 
-fn distances_between_valves(valves: &Vec<Valve>) -> HashMap<String, HashMap<String, u32>> {
+fn distances_between_valves(valves: &Vec<Valve>) -> HashMap<String, HashMap<String, usize>> {
     let mut distances = HashMap::new();
 
     let mut valve_lookup = HashMap::new();
@@ -197,7 +197,7 @@ mod tests {
         .map(|line| line.parse().unwrap())
         .collect();
 
-        let mut expected_distances: HashMap<String, HashMap<String, u32>> = HashMap::new();
+        let mut expected_distances: HashMap<String, HashMap<String, usize>> = HashMap::new();
 
         let mut dists = HashMap::new();
         dists.insert("BB".to_string(), 1);

@@ -1,11 +1,12 @@
 use advent_of_code::{
-    day1, day10, day12, day13, day14, day2, day3, day4, day5, day6, day7, day8, day9, day11, day15, day16, day17,
+    day1, day10, day11, day12, day13, day14, day15, day16, day17, day2, day3, day4, day5, day6,
+    day7, day8, day9,
 };
 use std::env;
 
-fn parse_command_line_args() -> (u32, u32) {
+fn parse_command_line_args() -> (usize, usize) {
     let args: Vec<String> = env::args().collect();
-    let parse_numeric = |arg: &String| arg.parse::<u32>();
+    let parse_numeric = |arg: &String| arg.parse::<usize>();
 
     match args.len() {
         3 => (
@@ -16,7 +17,7 @@ fn parse_command_line_args() -> (u32, u32) {
     }
 }
 
-fn run(day: u32, part: u32) -> u32 {
+fn run(day: usize, part: usize) -> usize {
     let solution = match (day, part) {
         (1, 1) => day1::part1,
         (1, 2) => day1::part2,

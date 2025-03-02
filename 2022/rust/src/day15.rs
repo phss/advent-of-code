@@ -44,21 +44,21 @@ impl FromStr for Sensor {
     }
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let sensors: Vec<Sensor> = parser::read("data/day15.txt").unwrap();
     no_beacon_positions(&sensors, 2000000)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let sensors: Vec<Sensor> = parser::read("data/day15.txt").unwrap();
     tunning_frequency(&sensors, 4000000)
 }
 
-fn no_beacon_positions(sensors: &Vec<Sensor>, at_y: i32) -> u32 {
+fn no_beacon_positions(sensors: &Vec<Sensor>, at_y: i32) -> usize {
     unique_ranges_at_y(sensors, at_y)
         .into_iter()
         .map(|range| range.count())
-        .sum::<usize>() as u32
+        .sum::<usize>() as usize
         - 1
 }
 
@@ -92,7 +92,7 @@ fn unique_ranges_at_y(sensors: &Vec<Sensor>, at_y: i32) -> Vec<RangeInclusive<i3
         })
 }
 
-fn tunning_frequency(sensors: &Vec<Sensor>, max: i32) -> u32 {
+fn tunning_frequency(sensors: &Vec<Sensor>, max: i32) -> usize {
     for y in 0..=max {
         let ranges = unique_ranges_at_y(sensors, y);
         if ranges.len() != 1 {

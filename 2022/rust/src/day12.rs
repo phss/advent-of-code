@@ -10,7 +10,7 @@ type Position = (usize, usize);
 struct Problem {
     start: Position,
     end: Position,
-    map: Vec<Vec<u32>>,
+    map: Vec<Vec<usize>>,
 }
 
 impl Problem {
@@ -33,9 +33,9 @@ impl Problem {
             .map(|line| {
                 line.chars()
                     .map(|c| match c {
-                        'S' => 'a' as u32,
-                        'E' => 'z' as u32,
-                        c => c as u32,
+                        'S' => 'a' as usize,
+                        'E' => 'z' as usize,
+                        c => c as usize,
                     })
                     .collect()
             })
@@ -45,19 +45,19 @@ impl Problem {
     }
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day12.txt").unwrap();
     let problem = Problem::parse(&lines);
     fewest_steps(problem)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day12.txt").unwrap();
     let problem = Problem::parse(&lines);
     fewest_steps_from_base(problem)
 }
 
-fn fewest_steps(problem: Problem) -> u32 {
+fn fewest_steps(problem: Problem) -> usize {
     let width = problem.map[0].len();
     let height = problem.map.len();
     let mut considered: HashSet<Rc<Position>> = HashSet::new();
@@ -99,7 +99,7 @@ fn fewest_steps(problem: Problem) -> u32 {
     }
 }
 
-fn fewest_steps_from_base(problem: Problem) -> u32 {
+fn fewest_steps_from_base(problem: Problem) -> usize {
     find_starts(&problem)
         .iter()
         .map(|(x, y)| {
@@ -118,7 +118,7 @@ fn find_starts(problem: &Problem) -> Vec<Position> {
 
     for y in 0..problem.map.len() {
         for (x, &c) in problem.map[y].iter().enumerate() {
-            if c == 'a' as u32 {
+            if c == 'a' as usize {
                 starts.push((x, y));
             }
         }

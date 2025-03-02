@@ -2,56 +2,56 @@ use std::{collections::HashSet, ops::Deref};
 
 use crate::parser;
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let rucksacks: Vec<String> = parser::read("data/day3.txt").unwrap();
     sum_of_priorities(&rucksacks)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let rucksacks: Vec<String> = parser::read("data/day3.txt").unwrap();
     sum_of_badge_priorities(&rucksacks)
 }
 
-fn sum_of_priorities(rucksacks: &Vec<String>) -> u32 {
+fn sum_of_priorities(rucksacks: &Vec<String>) -> usize {
     rucksacks
         .iter()
         .map(|rucksack| common_priority(rucksack))
         .sum()
 }
 
-fn common_priority(rucksack: &String) -> u32 {
-    let priorities: Vec<u32> = rucksack.chars().map(|c| priority(c)).collect();
+fn common_priority(rucksack: &String) -> usize {
+    let priorities: Vec<usize> = rucksack.chars().map(|c| priority(c)).collect();
     let (first_half, second_half) = priorities.split_at(priorities.len() / 2);
 
-    let first_half: HashSet<&u32> = first_half.into_iter().collect();
-    let second_half: HashSet<&u32> = second_half.into_iter().collect();
+    let first_half: HashSet<&usize> = first_half.into_iter().collect();
+    let second_half: HashSet<&usize> = second_half.into_iter().collect();
 
     **first_half.intersection(&second_half).next().unwrap()
 }
 
-fn sum_of_badge_priorities(rucksacks: &Vec<String>) -> u32 {
+fn sum_of_badge_priorities(rucksacks: &Vec<String>) -> usize {
     rucksacks
         .chunks(3)
         .map(|rucksacks| find_badge_priority(rucksacks))
         .sum()
 }
 
-fn find_badge_priority(rucksacks: &[String]) -> u32 {
-    let rucksacks: Vec<HashSet<u32>> = rucksacks
+fn find_badge_priority(rucksacks: &[String]) -> usize {
+    let rucksacks: Vec<HashSet<usize>> = rucksacks
         .iter()
         .map(|rucksack| rucksack.chars().map(|c| priority(c)).collect())
         .collect();
 
-    let ab: HashSet<&u32> = rucksacks[0].intersection(&rucksacks[1]).collect();
-    let ab: HashSet<u32> = ab.iter().map(|v| *v.deref()).collect();
+    let ab: HashSet<&usize> = rucksacks[0].intersection(&rucksacks[1]).collect();
+    let ab: HashSet<usize> = ab.iter().map(|v| *v.deref()).collect();
     *ab.intersection(&rucksacks[2]).next().unwrap()
 }
 
-fn priority(c: char) -> u32 {
+fn priority(c: char) -> usize {
     if c >= 'a' && c <= 'z' {
-        1 + (c as u32) - ('a' as u32)
+        1 + (c as usize) - ('a' as usize)
     } else {
-        27 + (c as u32) - ('A' as u32)
+        27 + (c as usize) - ('A' as usize)
     }
 }
 

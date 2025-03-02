@@ -31,17 +31,17 @@ impl FromStr for Move {
     }
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let moves: Vec<Move> = parser::read("data/day9.txt").unwrap();
     visited_positions(&moves, 1)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let moves: Vec<Move> = parser::read("data/day9.txt").unwrap();
     visited_positions(&moves, 9)
 }
 
-fn visited_positions(moves: &Vec<Move>, rope_length: usize) -> u32 {
+fn visited_positions(moves: &Vec<Move>, rope_length: usize) -> usize {
     let mut rope: Vec<(i32, i32)> = vec![(0, 0)];
     for _ in 0..rope_length {
         rope.push((0, 0));
@@ -83,7 +83,7 @@ fn visited_positions(moves: &Vec<Move>, rope_length: usize) -> u32 {
         }
     }
 
-    visited.len() as u32
+    visited.len() as usize
 }
 
 #[cfg(test)]

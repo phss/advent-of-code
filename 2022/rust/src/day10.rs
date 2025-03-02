@@ -29,12 +29,12 @@ impl FromStr for Instruction {
     }
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let program: Vec<Instruction> = parser::read("data/day10.txt").unwrap();
-    strength_signal_sum(&program) as u32
+    strength_signal_sum(&program) as usize
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let program: Vec<Instruction> = parser::read("data/day10.txt").unwrap();
     print(&program);
     0

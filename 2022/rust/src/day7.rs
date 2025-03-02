@@ -11,13 +11,13 @@ enum DirTree {
     },
     File {
         name: String,
-        size: u32,
+        size: usize,
     },
 }
 
 #[allow(dead_code)]
 impl DirTree {
-    pub fn size(self: Self) -> u32 {
+    pub fn size(self: Self) -> usize {
         match self {
             DirTree::File { name: _, size } => size,
             DirTree::Dir { name: _, children } => children.into_iter().map(DirTree::size).sum(),
@@ -58,20 +58,20 @@ impl DirTree {
 
 #[derive(Clone, Debug)]
 struct DirSizes {
-    size: u32,
+    size: usize,
 }
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let command_results: Vec<String> = parser::read("data/day7.txt").unwrap();
     sub_10000_dir_sizes(&command_results)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let command_results: Vec<String> = parser::read("data/day7.txt").unwrap();
     smallest_delete(&command_results)
 }
 
-fn sub_10000_dir_sizes(command_results: &Vec<String>) -> u32 {
+fn sub_10000_dir_sizes(command_results: &Vec<String>) -> usize {
     let dirs: Vec<DirSizes> = parse_to_dir_sizes(command_results);
     println!("{:?}", dirs);
     dirs.into_iter()
@@ -80,9 +80,9 @@ fn sub_10000_dir_sizes(command_results: &Vec<String>) -> u32 {
         .sum()
 }
 
-fn smallest_delete(command_results: &Vec<String>) -> u32 {
+fn smallest_delete(command_results: &Vec<String>) -> usize {
     let dirs: Vec<DirSizes> = parse_to_dir_sizes(command_results);
-    let sizes: Vec<u32> = dirs.into_iter().map(|dir| dir.size).collect();
+    let sizes: Vec<usize> = dirs.into_iter().map(|dir| dir.size).collect();
     let root_size = sizes.iter().max().unwrap();
     let remaining = 70000000 - root_size;
     let to_delete = 30000000 - remaining;
@@ -117,7 +117,7 @@ fn parse_to_dir_sizes(command_results: &Vec<String>) -> Vec<DirSizes> {
                 dirs.insert(dir_path, DirSizes { size: 0 });
             }
             [size, _] => {
-                let size: u32 = size.parse().unwrap();
+                let size: usize = size.parse().unwrap();
                 for dir_path in current_branch.iter().cloned() {
                     dirs.get_mut(&dir_path).unwrap().size += size;
                 }

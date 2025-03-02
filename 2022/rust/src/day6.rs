@@ -3,32 +3,32 @@ use itertools::Itertools;
 
 use crate::parser;
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let signal: Vec<String> = parser::read("data/day6.txt").unwrap();
     marker_index(signal.first().unwrap())
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let signal: Vec<String> = parser::read("data/day6.txt").unwrap();
     start_of_message(signal.first().unwrap())
 }
 
-fn marker_index(signal: &str) -> u32 {
+fn marker_index(signal: &str) -> usize {
     let potential_markers: Vec<char> = signal.chars().collect();
     let marker = potential_markers
         .windows(4)
         .enumerate()
         .find(|(_, marker)| marker.into_iter().all_unique());
-    (marker.unwrap().0 + 4) as u32
+    (marker.unwrap().0 + 4) as usize
 }
 
-fn start_of_message(signal: &str) -> u32 {
+fn start_of_message(signal: &str) -> usize {
     let potential_markers: Vec<char> = signal.chars().collect();
     let marker = potential_markers
         .windows(14)
         .enumerate()
         .find(|(_, marker)| marker.into_iter().all_unique());
-    (marker.unwrap().0 + 14) as u32
+    (marker.unwrap().0 + 14) as usize
 }
 
 #[cfg(test)]

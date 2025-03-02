@@ -2,16 +2,16 @@ use std::collections::HashSet;
 
 use crate::parser;
 
-type Point = (u32, u32);
+type Point = (usize, usize);
 type Path = Vec<Point>;
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day14.txt").unwrap();
     let paths: Vec<Path> = lines.iter().map(|line| parse(line)).collect();
     resting_sands(&paths)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day14.txt").unwrap();
     let paths: Vec<Path> = lines.iter().map(|line| parse(line)).collect();
     resting_sands_with_floor(&paths)
@@ -29,7 +29,7 @@ fn parse(raw: &str) -> Path {
         .collect()
 }
 
-fn resting_sands(paths: &Vec<Path>) -> u32 {
+fn resting_sands(paths: &Vec<Path>) -> usize {
     let mut sands = 0;
     let mut occupied: HashSet<Point> = rock_places(paths);
     let max_y = *occupied.iter().map(|(_, y)| y).max().unwrap();
@@ -62,7 +62,7 @@ fn resting_sands(paths: &Vec<Path>) -> u32 {
     }
 }
 
-fn resting_sands_with_floor(paths: &Vec<Path>) -> u32 {
+fn resting_sands_with_floor(paths: &Vec<Path>) -> usize {
     let mut sands = 0;
     let mut occupied: HashSet<Point> = rock_places(paths);
     let max_y = *occupied.iter().map(|(_, y)| y).max().unwrap();

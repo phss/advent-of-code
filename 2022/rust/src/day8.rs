@@ -2,26 +2,26 @@ use std::iter::repeat;
 
 use crate::parser;
 
-pub fn part1() -> u32 {
+pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day8.txt").unwrap();
-    let tree_heights: Vec<Vec<u32>> = to_height_map(&lines);
+    let tree_heights: Vec<Vec<usize>> = to_height_map(&lines);
     trees_visible(&tree_heights)
 }
 
-pub fn part2() -> u32 {
+pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day8.txt").unwrap();
-    let tree_heights: Vec<Vec<u32>> = to_height_map(&lines);
+    let tree_heights: Vec<Vec<usize>> = to_height_map(&lines);
     highest_scenic_score(&tree_heights)
 }
 
-fn to_height_map(lines: &Vec<String>) -> Vec<Vec<u32>> {
+fn to_height_map(lines: &Vec<String>) -> Vec<Vec<usize>> {
     lines
         .iter()
-        .map(|line| line.chars().map(|c| c as u32).collect())
+        .map(|line| line.chars().map(|c| c as usize).collect())
         .collect()
 }
 
-fn trees_visible(tree_heights: &Vec<Vec<u32>>) -> u32 {
+fn trees_visible(tree_heights: &Vec<Vec<usize>>) -> usize {
     let width = tree_heights[0].len();
     let height = tree_heights.len();
     let mut visible_trees = 0;
@@ -43,9 +43,9 @@ fn trees_visible(tree_heights: &Vec<Vec<u32>>) -> u32 {
 }
 
 fn is_highest_tree_in_dir<I>(
-    tree_heights: &Vec<Vec<u32>>,
+    tree_heights: &Vec<Vec<usize>>,
     tree_coords_in_direction: I,
-    current_height: u32,
+    current_height: usize,
 ) -> bool
 where
     I: Iterator<Item = (usize, usize)>,
@@ -55,7 +55,7 @@ where
         .all(|tree_height| tree_height < current_height)
 }
 
-fn highest_scenic_score(tree_heights: &Vec<Vec<u32>>) -> u32 {
+fn highest_scenic_score(tree_heights: &Vec<Vec<usize>>) -> usize {
     let width = tree_heights[0].len();
     let height = tree_heights.len();
     let mut max_scenic_score = 0;
@@ -76,13 +76,13 @@ fn highest_scenic_score(tree_heights: &Vec<Vec<u32>>) -> u32 {
         }
     }
 
-    max_scenic_score as u32
+    max_scenic_score as usize
 }
 
 fn scenic_score_in_dir<I>(
-    tree_heights: &Vec<Vec<u32>>,
+    tree_heights: &Vec<Vec<usize>>,
     tree_coords_in_direction: I,
-    current_height: u32,
+    current_height: usize,
     default: usize
 ) -> usize
 where
