@@ -1,16 +1,16 @@
 use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct Node<'a> {
+pub struct Node<'a> {
     label: &'a str,
-    count: usize,
+    pub count: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Graph<'a> {
-    nodes: HashMap<&'a str, Node<'a>>,
-    edges: HashMap<&'a str, HashSet<&'a str>>,
-    weights: HashMap<(&'a str, &'a str), usize>,
+    pub nodes: HashMap<&'a str, Node<'a>>,
+    pub edges: HashMap<&'a str, HashSet<&'a str>>,
+    pub weights: HashMap<(&'a str, &'a str), usize>,
 }
 
 impl<'a> Graph<'a> {

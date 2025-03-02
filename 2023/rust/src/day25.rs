@@ -1,5 +1,6 @@
 mod graph;
 
+use rand::prelude::*;
 use std::str::FromStr;
 
 use graph::Graph;
@@ -47,9 +48,27 @@ fn disconnect_and_sum(connections: &Vec<Connection>) -> usize {
     let pairs: Vec<(&str, &str)> = connections.iter().flat_map(Connection::to_pairs).collect();
     let graph = Graph::from_pairs(pairs);
 
-    println!("{:?}", graph);
+    loop {
+        let mut candidate = graph.clone();
+        krager_min_cut(&mut candidate);
 
-    0
+        if candidate.weights.values().all(|weight| *weight == 3) {
+            return candidate
+                .nodes
+                .values()
+                .fold(1, |acc, node| acc * node.count);
+        }
+    }
+}
+
+fn krager_min_cut(graph: &mut Graph) {
+    let mut rng = rand::rng();
+
+    while graph.nodes.len() > 2 {
+        let a = graph.nodes.keys().choose(&mut rng).unwrap();
+        let b = graph.edges.get(a).unwrap().iter().choose(&mut rng).unwrap();
+        graph.contract_nodes(a, b);
+    }
 }
 
 #[cfg(test)]
