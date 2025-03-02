@@ -1,4 +1,4 @@
-use std::{collections::HashSet, ops::Deref};
+use std::collections::HashSet;
 
 use crate::parser;
 
@@ -43,7 +43,7 @@ fn find_badge_priority(rucksacks: &[String]) -> usize {
         .collect();
 
     let ab: HashSet<&usize> = rucksacks[0].intersection(&rucksacks[1]).collect();
-    let ab: HashSet<usize> = ab.iter().map(|v| *v.deref()).collect();
+    let ab: HashSet<usize> = ab.iter().map(|v| **v).collect();
     *ab.intersection(&rucksacks[2]).next().unwrap()
 }
 
