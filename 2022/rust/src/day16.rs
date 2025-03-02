@@ -61,11 +61,8 @@ fn most_pressure_released(valves: &Vec<Valve>) -> u32 {
 fn most_pressure_released_with_elephant(valves: &Vec<Valve>) -> u32 {
     let mut max_pressure = 0;
     let paths = all_valid_paths(valves, 26);
-    let valid_paths: Vec<&(HashSet<String>, u32)> = paths
-        .iter()
-        .sorted_by_key(|(_, flow)| flow)
-        .rev()
-        .collect();
+    let valid_paths: Vec<&(HashSet<String>, u32)> =
+        paths.iter().sorted_by_key(|(_, flow)| flow).rev().collect();
 
     for i in 0..valid_paths.len() {
         for j in i..valid_paths.len() {
@@ -83,7 +80,7 @@ fn most_pressure_released_with_elephant(valves: &Vec<Valve>) -> u32 {
         }
     }
 
-    max_pressure 
+    max_pressure
 }
 
 fn all_valid_paths(valves: &Vec<Valve>, max_minutes: u32) -> Vec<(HashSet<String>, u32)> {
@@ -178,10 +175,7 @@ mod tests {
             })
         );
         assert_eq!(
-            Valve::from_str(
-                "Valve AA has flow rate=42; tunnel leads
-             to valve DD"
-            ),
+            Valve::from_str("Valve AA has flow rate=42; tunnel leads to valve DD"),
             Ok(Valve {
                 name: String::from("AA"),
                 flow_rate: 42,
