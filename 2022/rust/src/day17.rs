@@ -62,14 +62,16 @@ impl Shape {
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day17.txt").unwrap();
     let moves = parse(&lines[0]);
-    height_after_rocks(&moves)
+    height_after_rocks(&moves, 2022)
 }
 
 pub fn part2() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day17.txt").unwrap();
+    let moves = parse(&lines[0]);
+    height_after_rocks(&moves, 1000000000000)
 }
 
-fn height_after_rocks(moves: &Vec<Move>) -> usize {
+fn height_after_rocks(moves: &Vec<Move>, limit: usize) -> usize {
     let mut moves = moves.iter().cycle();
     let mut board: Vec<Vec<bool>> = vec![];
 
@@ -83,7 +85,7 @@ fn height_after_rocks(moves: &Vec<Move>) -> usize {
     let mut shapes = shapes.iter().cycle();
     let mut count = 0;
 
-    while count < 2022 {
+    while count < limit {
         let mut shape = shapes.next().unwrap().clone();
         shape.move_by((0, (board.len() + 3) as i32));
 
@@ -144,9 +146,12 @@ mod tests {
     #[test]
     fn sample_input_part_1() {
         let moves = parse(">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>");
-        assert_eq!(height_after_rocks(&moves), 3068);
+        assert_eq!(height_after_rocks(&moves, 2022), 3068);
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let moves = parse(">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>");
+        assert_eq!(height_after_rocks(&moves, 1000000000000), 1514285714288);
+    }
 }
