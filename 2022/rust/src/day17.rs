@@ -108,9 +108,6 @@ fn height_after_rocks(moves: &Vec<Move>, limit: usize) -> usize {
         }
 
         count += 1;
-
-        // print(&board);
-        // println!();
     }
 
     board.len() as usize
