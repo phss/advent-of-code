@@ -30,14 +30,14 @@ impl Shape {
         Self { positions }
     }
 
-    fn move_by(self: &mut Self, (dx, dy): (i32, i32)) {
+    fn move_by(&mut self, (dx, dy): (i32, i32)) {
         self.positions.iter_mut().for_each(|position| {
             position.0 += dx;
             position.1 += dy;
         });
     }
 
-    fn collides(self: &Self, board: &Vec<Vec<bool>>) -> bool {
+    fn collides(&self, board: &Vec<Vec<bool>>) -> bool {
         self.positions.iter().any(|(x, y)| {
             let out_of_bounds = *x < 0 || *x > 6 || *y < 0;
             let occupied = board
@@ -49,7 +49,7 @@ impl Shape {
         })
     }
 
-    fn transfer_to(self: &Self, board: &mut Vec<Vec<bool>>) {
+    fn transfer_to(&self, board: &mut Vec<Vec<bool>>) {
         for (x, y) in &self.positions {
             if *y as usize == board.len() {
                 board.push(vec![false; 7]);
