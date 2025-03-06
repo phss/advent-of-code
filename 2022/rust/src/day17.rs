@@ -62,16 +62,16 @@ impl Shape {
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day17.txt").unwrap();
     let moves = parse(&lines[0]);
-    height_after_rocks(&moves, 2022)
+    board_after_rocks(&moves, 2022).len()
 }
 
 pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day17.txt").unwrap();
     let moves = parse(&lines[0]);
-    height_after_rocks(&moves, 1000000000000)
+    board_after_rocks(&moves, 1000000000000).len()
 }
 
-fn height_after_rocks(moves: &Vec<Move>, limit: usize) -> usize {
+fn board_after_rocks(moves: &Vec<Move>, limit: usize) -> Vec<Vec<bool>> {
     let mut moves = moves.iter().cycle();
     let mut board: Vec<Vec<bool>> = vec![];
 
@@ -110,7 +110,7 @@ fn height_after_rocks(moves: &Vec<Move>, limit: usize) -> usize {
         count += 1;
     }
 
-    board.len() as usize
+    board
 }
 
 #[allow(dead_code)]
@@ -124,6 +124,24 @@ fn print(board: &Vec<Vec<bool>>) {
             })
             .collect();
         println!("{}", line);
+    }
+}
+
+#[allow(dead_code)]
+fn print_as_digits(board: &Vec<Vec<bool>>) {
+    let mut digits: Vec<usize> = vec![];
+    for row in board {
+        let mut height = 0;
+        for (i, &cell) in row.iter().enumerate() {
+            if cell {
+                height |= 1 << i;
+            }
+        }
+        digits.push(height);
+    }
+
+    for d in digits {
+        println!("{d}");
     }
 }
 
@@ -143,12 +161,16 @@ mod tests {
     #[test]
     fn sample_input_part_1() {
         let moves = parse(">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>");
-        assert_eq!(height_after_rocks(&moves, 2022), 3068);
+        let board = board_after_rocks(&moves, 2022);
+        assert_eq!(board.len(), 3068);
     }
 
     #[test]
     fn sample_input_part_2() {
         let moves = parse(">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>");
-        assert_eq!(height_after_rocks(&moves, 1000000000000), 1514285714288);
+        assert_eq!(
+            board_after_rocks(&moves, 1000000000000).len(),
+            1514285714288
+        );
     }
 }
