@@ -62,7 +62,9 @@ impl Shape {
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day17.txt").unwrap();
     let moves = parse(&lines[0]);
-    board_after_rocks(&moves, 2022).len()
+    let board = board_after_rocks(&moves, 2022);
+    print_as_digits(&board);
+    board.len()
 }
 
 pub fn part2() -> usize {
