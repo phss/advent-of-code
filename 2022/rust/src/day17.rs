@@ -57,20 +57,38 @@ impl Shape {
             board[*y as usize][*x as usize] = true;
         }
     }
+
+    fn digits_from(&self, board: &Vec<Vec<bool>>) -> Vec<usize> {
+        let ys: Vec<i32> = self.positions.iter().map(|p| p.1).collect();
+        let ymin = ys.iter().min().unwrap().clone();
+        let ymax = ys.iter().max().unwrap().clone();
+
+        (ymin..=ymax)
+            .map(|y| {
+                let row = board.get(y as usize).unwrap();
+                let mut height = 0;
+                for (i, &cell) in row.iter().enumerate() {
+                    if cell {
+                        height |= 1 << i;
+                    }
+                }
+                height
+            })
+            .collect()
+    }
 }
 
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day17.txt").unwrap();
     let moves = parse(&lines[0]);
     let board = board_after_rocks(&moves, 2022);
-    print_as_digits(&board);
     board.len()
 }
 
 pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day17.txt").unwrap();
     let moves = parse(&lines[0]);
-    board_after_rocks(&moves, 1000000000000).len()
+    simulated_height(&moves, 1000000000000)
 }
 
 fn board_after_rocks(moves: &Vec<Move>, limit: usize) -> Vec<Vec<bool>> {
@@ -113,6 +131,87 @@ fn board_after_rocks(moves: &Vec<Move>, limit: usize) -> Vec<Vec<bool>> {
     }
 
     board
+}
+
+fn simulated_height(moves: &Vec<Move>, limit: usize) -> usize {
+    let (cycle_heights, start, pre_cycle_height) = find_cycle(moves);
+    let remaining_limit = limit - start;
+
+    let cycle_height = cycle_heights.last().unwrap();
+    let total_cycles = remaining_limit / cycle_heights.len();
+    let cycle_i = remaining_limit & cycle_heights.len();
+    let remaining_cycle_height = cycle_heights.get(cycle_i).unwrap();
+
+    pre_cycle_height + (cycle_height * total_cycles) + remaining_cycle_height
+}
+
+fn find_cycle(moves: &Vec<Move>) -> (Vec<usize>, usize, usize) {
+    let mut moves = moves.iter().enumerate().cycle();
+    let mut board: Vec<Vec<bool>> = vec![];
+
+    let shapes = vec![
+        Shape::from(vec![(2, 0), (3, 0), (4, 0), (5, 0)]),
+        Shape::from(vec![(3, 0), (2, 1), (3, 1), (4, 1), (3, 2)]),
+        Shape::from(vec![(2, 0), (3, 0), (4, 0), (4, 1), (4, 2)]),
+        Shape::from(vec![(2, 0), (2, 1), (2, 2), (2, 3)]),
+        Shape::from(vec![(2, 0), (3, 0), (2, 1), (3, 1)]),
+    ];
+    let mut shapes = shapes.iter().cycle();
+
+    let mut entries = vec![];
+    let mut cycle_start = 0;
+
+    while cycle_start == 0 {
+        let mut shape = shapes.next().unwrap().clone();
+        shape.move_by((0, (board.len() + 3) as i32));
+
+        loop {
+            let (move_index, next_move) = moves.next().unwrap();
+            let vertical_move = match next_move {
+                Move::Left => (-1, 0),
+                Move::Right => (1, 0),
+            };
+            shape.move_by(vertical_move);
+            if shape.collides(&board) {
+                shape.move_by((vertical_move.0.neg(), 0));
+            }
+
+            shape.move_by((0, -1));
+            if shape.collides(&board) {
+                shape.move_by((0, 1));
+                shape.transfer_to(&mut board);
+
+                let height = board.len();
+                let digits = shape.digits_from(&board);
+                // println!("{}: {} - {:?}", height, move_index, digits);
+
+                let first_match_index =
+                    entries
+                        .iter()
+                        .position(|(_, prev_move_index, prev_digits)| {
+                            *prev_move_index == move_index && *prev_digits == digits
+                        });
+
+                if let Some(index) = first_match_index {
+                    cycle_start = index;
+                } else {
+                    entries.push((height, move_index, digits));
+                }
+
+                break;
+            }
+        }
+    }
+
+    let pre_cycle_height = entries.get(cycle_start - 1).unwrap().0;
+    let heights: Vec<usize> = (cycle_start..entries.len())
+        .map(|i| {
+            let entry = entries.get(i).unwrap();
+            entry.0 - pre_cycle_height
+        })
+        .collect();
+
+    (heights, cycle_start + 1, pre_cycle_height)
 }
 
 #[allow(dead_code)]
@@ -170,9 +269,6 @@ mod tests {
     #[test]
     fn sample_input_part_2() {
         let moves = parse(">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>");
-        assert_eq!(
-            board_after_rocks(&moves, 1000000000000).len(),
-            1514285714288
-        );
+        assert_eq!(simulated_height(&moves, 1000000000000), 1514285714288);
     }
 }
