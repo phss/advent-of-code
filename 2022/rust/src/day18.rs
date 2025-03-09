@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 
 use crate::parser;
 
@@ -47,27 +47,65 @@ fn surface_area(cubes: &Vec<(usize, usize, usize)>) -> usize {
 }
 
 fn outside_surface_area(cubes: &Vec<(usize, usize, usize)>) -> usize {
-    let cubes: HashSet<_> = cubes.iter().cloned().collect();
-    let visited: HashSet<usize> = HashSet::new();
+    let mut cubes: HashSet<_> = cubes.iter().cloned().collect();
 
-    let start = cubes.iter().min().unwrap();
-    let orientation = (0, 0, -1);
+    let max_coord = cubes
+        .iter()
+        .flat_map(|(x, y, z)| vec![x, y, z])
+        .max()
+        .unwrap()
+        + 1;
 
-    visited.len()
-}
+    let mut steamed: HashSet<(usize, usize, usize)> = HashSet::new();
+    steamed.insert((0, 0, 0));
+    let mut path: VecDeque<(usize, usize, usize)> = VecDeque::new();
+    path.push_back((0, 0, 0));
 
-fn to_3d_direction(
-    orientation: &(isize, isize, isize),
-    direction: &(isize, isize),
-) -> (isize, isize, isize) {
-    let (x_ori, y_ori, z_ori) = orientation.clone();
-    let (x_2d_dir, y_2d_dir) = direction.clone();
+    let mut area = 0;
 
-    (
-        x_2d_dir * z_ori.abs() + x_2d_dir * y_ori.abs(),
-        y_2d_dir * z_ori.abs() + y_2d_dir * x_ori.abs(),
-        x_2d_dir * x_ori.abs() + y_2d_dir * y_ori.abs(),
-    )
+    let directions = [
+        (1, 0, 0),
+        (-1, 0, 0),
+        (0, 1, 0),
+        (0, -1, 0),
+        (0, 0, 1),
+        (0, 0, -1),
+    ];
+    while let Some((x, y, z)) = path.pop_front() {
+        for (x_dir, y_dir, z_dir) in directions {
+            let x_new = x.checked_add_signed(x_dir).unwrap_or(0).min(max_coord);
+            let y_new = y.checked_add_signed(y_dir).unwrap_or(0).min(max_coord);
+            let z_new = z.checked_add_signed(z_dir).unwrap_or(0).min(max_coord);
+            let new_node = (x_new, y_new, z_new);
+
+            if steamed.contains(&new_node) {
+                continue;
+            }
+
+            if cubes.contains(&new_node) {
+                // area += 1;
+                continue;
+            }
+
+            steamed.insert(new_node);
+            path.push_back(new_node);
+        }
+    }
+
+    for (x, y, z) in &cubes {
+        for (x_dir, y_dir, z_dir) in directions {
+            let x_new = x.checked_add_signed(x_dir).unwrap_or(0).min(max_coord);
+            let y_new = y.checked_add_signed(y_dir).unwrap_or(0).min(max_coord);
+            let z_new = z.checked_add_signed(z_dir).unwrap_or(0).min(max_coord);
+            let new_node = (x_new, y_new, z_new);
+
+            if steamed.contains(&new_node) {
+                area += 1;
+            }
+        }
+    }
+
+    area
 }
 
 fn parse(input: Vec<String>) -> Vec<(usize, usize, usize)> {
@@ -82,8 +120,6 @@ fn parse(input: Vec<String>) -> Vec<(usize, usize, usize)> {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::Neg;
-
     use super::*;
 
     #[test]
@@ -112,49 +148,5 @@ mod tests {
         let result = outside_surface_area(&cubes);
 
         assert_eq!(result, 58);
-    }
-
-    #[test]
-    fn test_to_3d_direction() {
-        let left = (-1, 0);
-        let right = (1, 0);
-        let up = (0, -1);
-        let down = (0, 1);
-
-        let top = (0, 0, -1);
-        assert_eq!(to_3d_direction(&top, &left), (-1, 0, 0));
-        assert_eq!(to_3d_direction(&top, &right), (1, 0, 0));
-        assert_eq!(to_3d_direction(&top, &up), (0, -1, 0));
-        assert_eq!(to_3d_direction(&top, &down), (0, 1, 0));
-
-        let bottom = (0, 0, 1);
-        assert_eq!(to_3d_direction(&bottom, &left), (-1, 0, 0));
-        assert_eq!(to_3d_direction(&bottom, &right), (1, 0, 0));
-        assert_eq!(to_3d_direction(&bottom, &up), (0, -1, 0));
-        assert_eq!(to_3d_direction(&bottom, &down), (0, 1, 0));
-
-        let east = (-1, 0, 0);
-        assert_eq!(to_3d_direction(&east, &left), (0, 0, -1));
-        assert_eq!(to_3d_direction(&east, &right), (0, 0, 1));
-        assert_eq!(to_3d_direction(&east, &up), (0, -1, 0));
-        assert_eq!(to_3d_direction(&east, &down), (0, 1, 0));
-
-        let west = (1, 0, 0);
-        assert_eq!(to_3d_direction(&west, &left), (0, 0, -1));
-        assert_eq!(to_3d_direction(&west, &right), (0, 0, 1));
-        assert_eq!(to_3d_direction(&west, &up), (0, -1, 0));
-        assert_eq!(to_3d_direction(&west, &down), (0, 1, 0));
-
-        let north = (0, -1, 0);
-        assert_eq!(to_3d_direction(&north, &left), (-1, 0, 0));
-        assert_eq!(to_3d_direction(&north, &right), (1, 0, 0));
-        assert_eq!(to_3d_direction(&north, &up), (0, 0, -1));
-        assert_eq!(to_3d_direction(&north, &down), (0, 0, 1));
-
-        let south = (0, 1, 0);
-        assert_eq!(to_3d_direction(&south, &left), (-1, 0, 0));
-        assert_eq!(to_3d_direction(&south, &right), (1, 0, 0));
-        assert_eq!(to_3d_direction(&south, &up), (0, 0, -1));
-        assert_eq!(to_3d_direction(&south, &down), (0, 0, 1));
     }
 }
