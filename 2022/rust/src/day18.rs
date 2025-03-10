@@ -47,7 +47,11 @@ fn surface_area(cubes: &Vec<(usize, usize, usize)>) -> usize {
 }
 
 fn outside_surface_area(cubes: &Vec<(usize, usize, usize)>) -> usize {
-    let mut cubes: HashSet<_> = cubes.iter().cloned().collect();
+    let cubes: HashSet<_> = cubes
+        .iter()
+        .cloned()
+        .map(|(x, y, z)| (x + 1, y + 1, z + 1))
+        .collect();
 
     let max_coord = cubes
         .iter()
@@ -78,30 +82,17 @@ fn outside_surface_area(cubes: &Vec<(usize, usize, usize)>) -> usize {
             let z_new = z.checked_add_signed(z_dir).unwrap_or(0).min(max_coord);
             let new_node = (x_new, y_new, z_new);
 
-            if steamed.contains(&new_node) {
+            if cubes.contains(&new_node) {
+                area += 1;
                 continue;
             }
 
-            if cubes.contains(&new_node) {
-                // area += 1;
+            if steamed.contains(&new_node) {
                 continue;
             }
 
             steamed.insert(new_node);
             path.push_back(new_node);
-        }
-    }
-
-    for (x, y, z) in &cubes {
-        for (x_dir, y_dir, z_dir) in directions {
-            let x_new = x.checked_add_signed(x_dir).unwrap_or(0).min(max_coord);
-            let y_new = y.checked_add_signed(y_dir).unwrap_or(0).min(max_coord);
-            let z_new = z.checked_add_signed(z_dir).unwrap_or(0).min(max_coord);
-            let new_node = (x_new, y_new, z_new);
-
-            if steamed.contains(&new_node) {
-                area += 1;
-            }
         }
     }
 
@@ -148,5 +139,16 @@ mod tests {
         let result = outside_surface_area(&cubes);
 
         assert_eq!(result, 58);
+    }
+
+    #[test]
+    fn sample_input_part_2_extra() {
+        let input = vec!["1,2,2", "2,2,2", "3,2,2", "3,2,1", "4,3,2"];
+        let input = input.iter().map(|s| s.to_string()).collect();
+        let cubes = parse(input);
+
+        let result = outside_surface_area(&cubes);
+
+        assert_eq!(result, 24);
     }
 }
