@@ -1,9 +1,114 @@
+use cached::proc_macro::cached;
 use regex::Regex;
 use std::str::FromStr;
 
 use crate::parser;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
+struct Simulation {
+    blueprint: Blueprint,
+    materials: (usize, usize, usize, usize),
+    robots: (usize, usize, usize, usize),
+}
+
+impl Simulation {
+    fn from(blueprint: Blueprint) -> Self {
+        Self {
+            blueprint,
+            materials: (0, 0, 0, 0),
+            robots: (1, 0, 0, 0),
+        }
+    }
+
+    fn build_ore_robot(&self) -> Option<Self> {
+        let ore_cost = self.blueprint.ore_robot_cost;
+        if self.materials.0 >= ore_cost {
+            let collected = self.collect();
+            let mut materials = collected.materials;
+            materials.0 -= ore_cost;
+            let mut robots = collected.robots;
+            robots.0 += 1;
+            Some(Simulation {
+                blueprint: collected.blueprint,
+                materials,
+                robots,
+            })
+        } else {
+            None
+        }
+    }
+
+    fn build_clay_robot(&self) -> Option<Self> {
+        let ore_cost = self.blueprint.clay_robot_cost;
+        if self.materials.0 >= ore_cost {
+            let collected = self.collect();
+            let mut materials = collected.materials;
+            materials.0 -= ore_cost;
+            let mut robots = collected.robots;
+            robots.1 += 1;
+            Some(Simulation {
+                blueprint: collected.blueprint,
+                materials,
+                robots,
+            })
+        } else {
+            None
+        }
+    }
+
+    fn build_obisidian_robot(&self) -> Option<Self> {
+        let (ore_cost, clay_cost) = self.blueprint.obsidian_robot_cost;
+        if self.materials.0 >= ore_cost && self.materials.1 >= clay_cost {
+            let collected = self.collect();
+            let mut materials = collected.materials;
+            materials.0 -= ore_cost;
+            materials.1 -= clay_cost;
+            let mut robots = collected.robots;
+            robots.2 += 1;
+            Some(Simulation {
+                blueprint: collected.blueprint,
+                materials,
+                robots,
+            })
+        } else {
+            None
+        }
+    }
+
+    fn build_geode_robot(&self) -> Option<Self> {
+        let (ore_cost, obsidian_cost) = self.blueprint.geode_robot_cost;
+        if self.materials.0 >= ore_cost && self.materials.2 >= obsidian_cost {
+            let collected = self.collect();
+            let mut materials = collected.materials;
+            materials.0 -= ore_cost;
+            materials.2 -= obsidian_cost;
+            let mut robots = collected.robots;
+            robots.3 += 1;
+            Some(Simulation {
+                blueprint: collected.blueprint,
+                materials,
+                robots,
+            })
+        } else {
+            None
+        }
+    }
+
+    fn collect(&self) -> Self {
+        Self {
+            blueprint: self.blueprint,
+            materials: (
+                self.materials.0 + self.robots.0,
+                self.materials.1 + self.robots.1,
+                self.materials.2 + self.robots.2,
+                self.materials.3 + self.robots.3,
+            ),
+            robots: self.robots,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 struct Blueprint {
     id: usize,
     ore_robot_cost: usize,
@@ -30,7 +135,7 @@ impl FromStr for Blueprint {
 }
 
 pub fn part1() -> usize {
-    let blueprints: Vec<Blueprint> = parser::read("data/day19.txt").unwrap();
+    let blueprints: Vec<Blueprint> = parser::read("data/blah.txt").unwrap();
     sum_quality_levels(&blueprints)
 }
 
@@ -39,7 +144,46 @@ pub fn part2() -> usize {
 }
 
 fn sum_quality_levels(blueprints: &Vec<Blueprint>) -> usize {
-    0
+    blueprints
+        .iter()
+        .map(|blueprint| {
+            let simulation = Simulation::from(blueprint.clone());
+            simulate_quality_level(simulation, 6)
+        })
+        .sum()
+}
+
+// #[cached]
+fn simulate_quality_level(simulation: Simulation, remaining_minutes: usize) -> usize {
+    if remaining_minutes == 0 {
+        println!("{:?}", simulation);
+        return simulation.blueprint.id * simulation.materials.3;
+    }
+
+    let mut candidates = Vec::new();
+
+    if let Some(next) = simulation.build_ore_robot() {
+        candidates.push(simulate_quality_level(next, remaining_minutes - 1));
+    }
+
+    if let Some(next) = simulation.build_clay_robot() {
+        candidates.push(simulate_quality_level(next, remaining_minutes - 1));
+    }
+
+    if let Some(next) = simulation.build_obisidian_robot() {
+        candidates.push(simulate_quality_level(next, remaining_minutes - 1));
+    }
+
+    if let Some(next) = simulation.build_geode_robot() {
+        candidates.push(simulate_quality_level(next, remaining_minutes - 1));
+    }
+
+    candidates.push(simulate_quality_level(
+        simulation.collect(),
+        remaining_minutes - 1,
+    ));
+
+    candidates.into_iter().max().unwrap()
 }
 
 #[cfg(test)]
