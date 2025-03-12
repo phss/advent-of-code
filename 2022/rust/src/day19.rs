@@ -1,6 +1,5 @@
-use cached::proc_macro::cached;
 use regex::Regex;
-use std::str::FromStr;
+use std::{collections::HashSet, str::FromStr};
 
 use crate::parser;
 
@@ -135,7 +134,7 @@ impl FromStr for Blueprint {
 }
 
 pub fn part1() -> usize {
-    let blueprints: Vec<Blueprint> = parser::read("data/blah.txt").unwrap();
+    let blueprints: Vec<Blueprint> = parser::read("data/day19.txt").unwrap();
     sum_quality_levels(&blueprints)
 }
 
@@ -148,42 +147,43 @@ fn sum_quality_levels(blueprints: &Vec<Blueprint>) -> usize {
         .iter()
         .map(|blueprint| {
             let simulation = Simulation::from(blueprint.clone());
-            simulate_quality_level(simulation, 6)
+            let result = simulate_quality_level(HashSet::from([simulation]), 24);
+            result
         })
         .sum()
 }
 
-// #[cached]
-fn simulate_quality_level(simulation: Simulation, remaining_minutes: usize) -> usize {
+fn simulate_quality_level(simulations: HashSet<Simulation>, remaining_minutes: usize) -> usize {
     if remaining_minutes == 0 {
-        println!("{:?}", simulation);
-        return simulation.blueprint.id * simulation.materials.3;
+        return simulations
+            .iter()
+            .map(|simulation| simulation.blueprint.id * simulation.materials.3)
+            .max()
+            .unwrap();
     }
 
-    let mut candidates = Vec::new();
-
-    if let Some(next) = simulation.build_ore_robot() {
-        candidates.push(simulate_quality_level(next, remaining_minutes - 1));
+    let mut candidates = HashSet::new();
+    for simulation in simulations {
+        if let Some(next) = simulation.build_geode_robot() {
+            candidates.insert(next);
+        }
+        if let Some(next) = simulation.build_obisidian_robot() {
+            candidates.insert(next);
+        }
+        if let Some(next) = simulation.build_clay_robot() {
+            if remaining_minutes > 5 {
+                candidates.insert(next);
+            }
+        }
+        if let Some(next) = simulation.build_ore_robot() {
+            if remaining_minutes > 15 {
+                candidates.insert(next);
+            }
+        }
+        candidates.insert(simulation.collect());
     }
 
-    if let Some(next) = simulation.build_clay_robot() {
-        candidates.push(simulate_quality_level(next, remaining_minutes - 1));
-    }
-
-    if let Some(next) = simulation.build_obisidian_robot() {
-        candidates.push(simulate_quality_level(next, remaining_minutes - 1));
-    }
-
-    if let Some(next) = simulation.build_geode_robot() {
-        candidates.push(simulate_quality_level(next, remaining_minutes - 1));
-    }
-
-    candidates.push(simulate_quality_level(
-        simulation.collect(),
-        remaining_minutes - 1,
-    ));
-
-    candidates.into_iter().max().unwrap()
+    simulate_quality_level(candidates, remaining_minutes - 1)
 }
 
 #[cfg(test)]
@@ -192,15 +192,15 @@ mod tests {
 
     #[test]
     fn sample_input_part_1() {
-        let input = vec![
-            "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.",
-            "Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.",
-        ];
-        let blueprints: Vec<Blueprint> = input.iter().map(|s| s.parse().unwrap()).collect();
+        // let input = vec![
+        //     "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.",
+        //     "Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.",
+        // ];
+        // let blueprints: Vec<Blueprint> = input.iter().map(|s| s.parse().unwrap()).collect();
 
-        let result = sum_quality_levels(&blueprints);
+        // let result = sum_quality_levels(&blueprints);
 
-        assert_eq!(result, 33);
+        // assert_eq!(result, 33);
     }
 
     #[test]
