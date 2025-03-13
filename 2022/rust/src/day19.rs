@@ -264,39 +264,6 @@ fn simulate_quality_level_2(start: Simulation, remaining_minutes: usize) -> usiz
     max_geodes
 }
 
-// fn simulate_quality_level(simulations: HashSet<Simulation>, remaining_minutes: usize) -> usize {
-//     if remaining_minutes == 0 {
-//         return simulations
-//             .iter()
-//             .map(|simulation| simulation.blueprint.id * simulation.materials.3)
-//             .max()
-//             .unwrap();
-//     }
-
-//     let mut candidates = HashSet::new();
-//     for simulation in simulations {
-//         if let Some(next) = simulation.build_geode_robot() {
-//             candidates.insert(next);
-//         }
-//         if let Some(next) = simulation.build_obisidian_robot() {
-//             candidates.insert(next);
-//         }
-//         if let Some(next) = simulation.build_clay_robot() {
-//             if remaining_minutes > 5 {
-//                 candidates.insert(next);
-//             }
-//         }
-//         if let Some(next) = simulation.build_ore_robot() {
-//             if remaining_minutes > 15 {
-//                 candidates.insert(next);
-//             }
-//         }
-//         candidates.insert(simulation.collect());
-//     }
-
-//     simulate_quality_level(candidates, remaining_minutes - 1)
-// }
-
 #[cfg(test)]
 mod tests {
     use super::*;
