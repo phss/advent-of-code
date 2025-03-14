@@ -23,18 +23,10 @@ impl Simulation {
     }
 
     fn build_ore_robot(&self) -> Option<(Self, usize)> {
-        // let max_ore_cost = vec![self.blueprint.ore_robot_cost]
-        //     .into_iter()
-        //     .max()
-        //     .unwrap();
-        // if self.robots.0 >= max_ore_cost {
-        //     return None;
-        // }
-
         let ore_cost = self.blueprint.ore_robot_cost;
 
-        let mut turns = 1;
-        let mut collected = self.collect();
+        let mut turns = 0;
+        let mut collected = self.clone();
         while collected.materials.0 < ore_cost {
             collected = collected.collect();
             turns += 1;
@@ -64,8 +56,8 @@ impl Simulation {
 
         let ore_cost = self.blueprint.clay_robot_cost;
 
-        let mut turns = 1;
-        let mut collected = self.collect();
+        let mut turns = 0;
+        let mut collected = self.clone();
         while collected.materials.0 < ore_cost {
             collected = collected.collect();
             turns += 1;
@@ -88,19 +80,14 @@ impl Simulation {
     }
 
     fn build_obisidian_robot(&self) -> Option<(Self, usize)> {
-        // let max_obsidian_cost = self.blueprint.geode_robot_cost.1;
-        // if self.robots.2 >= max_obsidian_cost {
-        //     return None;
-        // }
-
         let (ore_cost, clay_cost) = self.blueprint.obsidian_robot_cost;
 
         if self.robots.1 == 0 {
             return None;
         }
 
-        let mut turns = 1;
-        let mut collected = self.collect();
+        let mut turns = 0;
+        let mut collected = self.clone();
         while collected.materials.0 < ore_cost || collected.materials.1 < clay_cost {
             collected = collected.collect();
             turns += 1;
@@ -130,8 +117,8 @@ impl Simulation {
             return None;
         }
 
-        let mut turns = 1;
-        let mut collected = self.collect();
+        let mut turns = 0;
+        let mut collected = self.clone();
         while collected.materials.0 < ore_cost || collected.materials.2 < obsidian_cost {
             collected = collected.collect();
             turns += 1;
@@ -195,13 +182,13 @@ impl FromStr for Blueprint {
 }
 
 pub fn part1() -> usize {
-    let blueprints: Vec<Blueprint> = parser::read("data/blah.txt").unwrap();
-    // let blueprints: Vec<Blueprint> = parser::read("data/day19.txt").unwrap();
+    let blueprints: Vec<Blueprint> = parser::read("data/day19.txt").unwrap();
     sum_quality_levels(&blueprints)
 }
 
 pub fn part2() -> usize {
-    0
+    let blueprints: Vec<Blueprint> = parser::read("data/day19.txt").unwrap();
+    mult_quality_levels(&blueprints)
 }
 
 fn sum_quality_levels(blueprints: &Vec<Blueprint>) -> usize {
@@ -209,14 +196,24 @@ fn sum_quality_levels(blueprints: &Vec<Blueprint>) -> usize {
         .iter()
         .map(|blueprint| {
             let simulation = Simulation::from(blueprint.clone());
-            // let result = simulate_quality_level(HashSet::from([simulation]), 24);
-            let result = simulate_quality_level_2(simulation, 32);
-            result
+            let quality_level = simulate_quality_level(simulation, 24);
+            quality_level * blueprint.id
         })
         .sum()
 }
 
-fn simulate_quality_level_2(start: Simulation, max_minutes: usize) -> usize {
+fn mult_quality_levels(blueprints: &Vec<Blueprint>) -> usize {
+    blueprints
+        .iter()
+        .take(3)
+        .map(|blueprint| {
+            let simulation = Simulation::from(blueprint.clone());
+            simulate_quality_level(simulation, 32)
+        })
+        .fold(1, |acc, q| acc * q)
+}
+
+fn simulate_quality_level(start: Simulation, max_minutes: usize) -> usize {
     let mut max_geodes = 0;
 
     let mut visited = HashSet::new();
@@ -224,22 +221,13 @@ fn simulate_quality_level_2(start: Simulation, max_minutes: usize) -> usize {
     let mut paths = VecDeque::new();
     paths.push_back((start, 0));
 
-    while let Some((simulation, remaining)) = paths.pop_front() {
-        // println!("{:?}", (remaining, simulation));
-        if remaining >= max_minutes {
+    while let Some((simulation, minutes)) = paths.pop_front() {
+        if minutes >= max_minutes {
             continue;
         }
 
         let geodes_building_nothing_else =
-            simulation.materials.3 + (max_minutes - remaining) * simulation.robots.3;
-        // if geodes_building_nothing_else > max_geodes {
-        //     // println!("{}", (max_minutes - remaining));
-        //     // println!("{}", simulation.materials.3);
-        //     // println!("{}", simulation.robots.3);
-        //     // println!("{}", geodes_building_nothing_else);
-        //     // println!("{} = {:?}", remaining, simulation);
-        // }
-        // println!("{} {}", geodes_building_nothing_else, max_geodes);
+            simulation.materials.3 + (max_minutes - minutes) * simulation.robots.3;
         max_geodes = max_geodes.max(geodes_building_nothing_else);
 
         let mut candidates = HashSet::new();
@@ -257,21 +245,23 @@ fn simulate_quality_level_2(start: Simulation, max_minutes: usize) -> usize {
         }
 
         for (candidate, turns) in candidates {
-            // if turns > remaining {
-            //     continue;
-            // }
+            let candidate_minutes = turns + minutes;
+            let new_state = (candidate, candidate_minutes);
+            if candidate_minutes >= max_minutes || visited.contains(&new_state) {
+                continue;
+            }
 
-            let new_state = (candidate, remaining + turns);
-            if visited.contains(&new_state) {
+            let remaining_time = max_minutes - candidate_minutes;
+            let candidate_potential = candidate.materials.3
+                + remaining_time * candidate.robots.3
+                + remaining_time * (remaining_time - 1) / 2;
+            if candidate_potential <= max_geodes {
                 continue;
             }
 
             visited.insert(new_state);
             paths.push_back(new_state);
         }
-
-        // println!("{:?}", (remaining, simulation));
-        // println!("{}", paths.len());
     }
 
     max_geodes
@@ -283,15 +273,15 @@ mod tests {
 
     #[test]
     fn sample_input_part_1() {
-        // let input = vec![
-        //     "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.",
-        //     "Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.",
-        // ];
-        // let blueprints: Vec<Blueprint> = input.iter().map(|s| s.parse().unwrap()).collect();
+        let input = vec![
+            "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.",
+            "Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.",
+        ];
+        let blueprints: Vec<Blueprint> = input.iter().map(|s| s.parse().unwrap()).collect();
 
-        // let result = sum_quality_levels(&blueprints);
+        let result = sum_quality_levels(&blueprints);
 
-        // assert_eq!(result, 33);
+        assert_eq!(result, 33);
     }
 
     #[test]
