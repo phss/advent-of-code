@@ -49,11 +49,6 @@ impl Simulation {
     }
 
     fn build_clay_robot(&self) -> Option<(Self, usize)> {
-        // let max_clay_cost = self.blueprint.obsidian_robot_cost.1;
-        // if self.robots.1 >= max_clay_cost {
-        //     return None;
-        // }
-
         let ore_cost = self.blueprint.clay_robot_cost;
 
         let mut turns = 0;
