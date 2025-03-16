@@ -2,7 +2,7 @@ use crate::parser;
 
 pub fn part1() -> usize {
     let numbers: Vec<isize> = parser::read("data/day20.txt").unwrap();
-    sum_after_mixing(&isize)
+    sum_after_mixing(&numbers)
 }
 
 pub fn part2() -> usize {
