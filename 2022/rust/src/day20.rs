@@ -10,31 +10,27 @@ pub fn part2() -> usize {
 }
 
 fn sum_after_mixing(numbers: &Vec<isize>) -> usize {
-    let mut rotated = numbers.clone();
+    let mut mixed: Vec<(usize, &isize)> = numbers.iter().enumerate().clone().collect();
 
-    for number in numbers {
-        let pos = rotated.iter().position(|n| n == number).unwrap();
-        let mut ns = pos as isize + number;
-        if ns <= 0 {
-            ns -= 1;
-        }
-        if ns >= numbers.len() as isize {
-            ns += 1;
-        }
-        ns = ns.rem_euclid(numbers.len() as isize);
+    for (original_index, number) in numbers.iter().enumerate() {
+        let mix_from = mixed
+            .iter()
+            .position(|(i, _)| *i == original_index)
+            .unwrap();
 
-        rotated.remove(pos);
-        rotated.insert(ns as usize, *number);
+        let mut mix_to = mix_from as isize + number;
+        mix_to = mix_to.rem_euclid(mixed.len() as isize - 1);
 
-        // println!("{:?}", blah);
+        let elem = mixed.remove(mix_from);
+        mixed.insert(mix_to as usize, elem);
     }
 
-    let zero_pos = rotated.iter().position(|n| *n == 0).unwrap();
+    let zero_pos = mixed.iter().position(|(_, n)| **n == 0).unwrap();
     let a = (zero_pos + 1000).rem_euclid(numbers.len());
     let b = (zero_pos + 2000).rem_euclid(numbers.len());
     let c = (zero_pos + 3000).rem_euclid(numbers.len());
 
-    (rotated[a] + rotated[b] + rotated[c]) as usize
+    (mixed[a].1 + mixed[b].1 + mixed[c].1) as usize
 }
 
 #[cfg(test)]
