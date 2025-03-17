@@ -12,11 +12,29 @@ enum Monkey {
 }
 
 pub fn part1() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day21.txt").unwrap();
+    let monkeys = parse(lines);
+    root_number(&monkeys)
 }
 
 pub fn part2() -> usize {
     0
+}
+
+fn root_number(monkeys: &HashMap<String, Monkey>) -> usize {
+    shout(monkeys, &"root".to_string())
+}
+
+fn shout(monkeys: &HashMap<String, Monkey>, monkey_id: &String) -> usize {
+    let monkey = monkeys.get(monkey_id).unwrap();
+
+    match monkey {
+        Monkey::Number(n) => *n,
+        Monkey::Add(a, b) => shout(monkeys, a) + shout(monkeys, b),
+        Monkey::Sub(a, b) => shout(monkeys, a) - shout(monkeys, b),
+        Monkey::Mult(a, b) => shout(monkeys, a) * shout(monkeys, b),
+        Monkey::Div(a, b) => shout(monkeys, a) / shout(monkeys, b),
+    }
 }
 
 fn parse(lines: Vec<String>) -> HashMap<String, Monkey> {
@@ -75,11 +93,9 @@ mod tests {
         let lines: Vec<String> = input.iter().map(|s| s.parse().unwrap()).collect();
         let monkeys = parse(lines);
 
-        println!("{:?}", monkeys);
+        let result = root_number(&monkeys);
 
-        // let result = root_number(&monkeys);
-
-        // assert_eq!(result, 150);
+        assert_eq!(result, 152);
     }
 
     #[test]
