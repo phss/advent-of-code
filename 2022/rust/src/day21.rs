@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::parser;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Monkey {
     Number(usize),
     Add(String, String),
@@ -18,7 +18,9 @@ pub fn part1() -> usize {
 }
 
 pub fn part2() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day21.txt").unwrap();
+    let monkeys = parse(lines);
+    root_equality_number(&monkeys)
 }
 
 fn root_number(monkeys: &HashMap<String, Monkey>) -> usize {
@@ -34,6 +36,34 @@ fn shout(monkeys: &HashMap<String, Monkey>, monkey_id: &String) -> usize {
         Monkey::Sub(a, b) => shout(monkeys, a) - shout(monkeys, b),
         Monkey::Mult(a, b) => shout(monkeys, a) * shout(monkeys, b),
         Monkey::Div(a, b) => shout(monkeys, a) / shout(monkeys, b),
+    }
+}
+
+fn root_equality_number(monkeys: &HashMap<String, Monkey>) -> usize {
+    if let Some(Monkey::Add(a, b)) = monkeys.get("root") {
+        let left = simplify(monkeys, a);
+        let right = shout(monkeys, b);
+
+        println!("{right}");
+        println!("{left}");
+    }
+
+    0
+}
+
+fn simplify(monkeys: &HashMap<String, Monkey>, monkey_id: &String) -> String {
+    if monkey_id == &"humn".to_string() {
+        return monkey_id.clone();
+    }
+
+    let monkey = monkeys.get(monkey_id).unwrap();
+
+    match monkey {
+        Monkey::Number(n) => n.to_string(),
+        Monkey::Add(a, b) => format!("({} + {})", simplify(monkeys, a), simplify(monkeys, b)),
+        Monkey::Sub(a, b) => format!("({} - {})", simplify(monkeys, a), simplify(monkeys, b)),
+        Monkey::Mult(a, b) => format!("({} * {})", simplify(monkeys, a), simplify(monkeys, b)),
+        Monkey::Div(a, b) => format!("({} / {})", simplify(monkeys, a), simplify(monkeys, b)),
     }
 }
 
