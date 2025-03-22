@@ -2,7 +2,7 @@ use crate::parser;
 
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day22.txt").unwrap();
-    let (map, instructions) = parse(lines);
+    let (map, instructions) = parse(lines, 150);
     final_password(&map, &instructions)
 }
 
@@ -17,7 +17,6 @@ fn final_password(map: &Vec<Vec<char>>, instructions: &Vec<(usize, char)>) -> us
     for (moves, turn) in instructions {
         position = move_to(map, position, *moves, direction);
         direction = turn_to(direction, *turn);
-        println!("{:?} {}", position, direction);
     }
 
     score(position, direction)
@@ -41,8 +40,6 @@ fn move_to(
     moves: usize,
     direction: char,
 ) -> (usize, usize) {
-    let max_x = map[0].len() - 1;
-    let max_y = map.len() - 1;
     let (dir_x, dir_y): (isize, isize) = match direction {
         '>' => (1, 0),
         'v' => (0, 1),
@@ -53,40 +50,32 @@ fn move_to(
     let (mut x, mut y) = position.clone();
 
     for _ in 0..moves {
-        let new_x = if x == 0 && dir_x < 0 {
-            map[y]
-                .iter()
-                .enumerate()
+        let max_x = map[y].len() - 1;
+        let max_y = map.len() - 1;
+
+        let wrap_left = dir_x < 0 && (x == 0 || map[y][x - 1] == ' ');
+        let wrap_right = dir_x > 0 && (x == max_x || map[y][x + 1] == ' ');
+        let wrap_up = dir_y < 0 && (y == 0 || map[y - 1][x] == ' ');
+        let wrap_down = dir_y > 0 && (y == max_y || map[y + 1][x] == ' ');
+
+        let new_x = if wrap_left {
+            (0..=max_x)
                 .rev()
-                .find(|(_, cell)| **cell != ' ')
-                .map(|(v, _)| v)
+                .find(|new_x| map[y][*new_x] != ' ')
                 .unwrap()
-        } else if x == max_x && dir_x > 0 {
-            map[y]
-                .iter()
-                .enumerate()
-                .find(|(_, cell)| **cell != ' ')
-                .map(|(v, _)| v)
-                .unwrap()
+        } else if wrap_right {
+            (0..=max_x).find(|new_x| map[y][*new_x] != ' ').unwrap()
         } else {
             x.wrapping_add_signed(dir_x)
         };
 
-        let new_y = if y == 0 && dir_y < 0 {
-            map[y]
-                .iter()
-                .enumerate()
+        let new_y = if wrap_up {
+            (0..=max_y)
                 .rev()
-                .find(|(_, cell)| **cell != ' ')
-                .map(|(v, _)| v)
+                .find(|new_y| map[*new_y][x] != ' ')
                 .unwrap()
-        } else if y == max_y && dir_y > 0 {
-            map[y]
-                .iter()
-                .enumerate()
-                .find(|(_, cell)| **cell != ' ')
-                .map(|(v, _)| v)
-                .unwrap()
+        } else if wrap_down {
+            (0..=max_y).find(|new_y| map[*new_y][x] != ' ').unwrap()
         } else {
             y.wrapping_add_signed(dir_y)
         };
@@ -130,14 +119,18 @@ fn score((x, y): (usize, usize), direction: char) -> usize {
     row_score + col_score + dir_score
 }
 
-fn parse(lines: Vec<String>) -> (Vec<Vec<char>>, Vec<(usize, char)>) {
+fn parse(lines: Vec<String>, width: usize) -> (Vec<Vec<char>>, Vec<(usize, char)>) {
     let mut raw = lines.split(|line| line.is_empty());
 
     let map = raw
         .next()
         .unwrap()
         .iter()
-        .map(|s| s.chars().collect())
+        .map(|s| {
+            let mut row: Vec<char> = s.chars().collect();
+            row.resize(width, ' ');
+            row
+        })
         .collect();
 
     let direction = |c| c == 'R' || c == 'L';
@@ -183,7 +176,7 @@ mod tests {
             "10R5L5R10L4R5L5",
         ];
         let lines: Vec<String> = input.iter().map(|s| s.parse().unwrap()).collect();
-        let (map, instructions) = parse(lines);
+        let (map, instructions) = parse(lines, 20);
 
         let result = final_password(&map, &instructions);
 
