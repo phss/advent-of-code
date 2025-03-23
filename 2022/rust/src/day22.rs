@@ -7,7 +7,9 @@ pub fn part1() -> usize {
 }
 
 pub fn part2() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day22.txt").unwrap();
+    let (map, instructions) = parse(lines, 150);
+    final_password_cube(&map, &instructions)
 }
 
 fn final_password(map: &Vec<Vec<char>>, instructions: &Vec<(usize, char)>) -> usize {
@@ -20,6 +22,10 @@ fn final_password(map: &Vec<Vec<char>>, instructions: &Vec<(usize, char)>) -> us
     }
 
     score(position, direction)
+}
+
+fn final_password_cube(map: &Vec<Vec<char>>, instructions: &Vec<(usize, char)>) -> usize {
+    0
 }
 
 fn start_position(map: &Vec<Vec<char>>) -> (usize, usize) {
@@ -184,5 +190,28 @@ mod tests {
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let input = vec![
+            "        ...#    ",
+            "        .#..    ",
+            "        #...    ",
+            "        ....    ",
+            "...#.......#    ",
+            "........#...    ",
+            "..#....#....    ",
+            "..........#.    ",
+            "        ...#....",
+            "        .....#..",
+            "        .#......",
+            "        ......#.",
+            "",
+            "10R5L5R10L4R5L5",
+        ];
+        let lines: Vec<String> = input.iter().map(|s| s.parse().unwrap()).collect();
+        let (map, instructions) = parse(lines, 20);
+
+        let result = final_password_cube(&map, &instructions);
+
+        assert_eq!(result, 5031);
+    }
 }
