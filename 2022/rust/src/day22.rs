@@ -10,8 +10,9 @@ pub fn part1() -> usize {
 
 pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day22.txt").unwrap();
-    let (map, adj, instructions) = parse(lines, 150);
-    final_password(&map, &adj, &instructions)
+    // let (map, adj, instructions) = parse_cube(lines, 150);
+    // final_password(&map, &adj, &instructions)
+    todo!()
 }
 
 fn final_password(
@@ -179,6 +180,48 @@ fn parse(
     (map, adj, instructions)
 }
 
+fn parse_cube(
+    map: &Vec<Vec<char>>,
+    adj: &HashMap<(usize, usize, char), (usize, usize, char)>,
+    cube_dimension: usize,
+    cubes: Vec<(usize, usize)>,
+    overrides: Vec<(usize, char, usize, char, bool)>,
+) -> HashMap<(usize, usize, char), (usize, usize, char)> {
+    let mut cube_adj = adj.clone();
+    let max_i = cube_dimension - 1;
+
+    for (from, from_dir, to, to_dir, invert) in overrides {
+        let from_cube = cubes[from];
+        let to_cube = cubes[to];
+
+        for i in 0..cube_dimension {
+            let (from_x, from_y) = match from_dir {
+                '^' => (from_cube.0 + i, from_cube.1),
+                'v' => (from_cube.0 + i, from_cube.1 + max_i),
+                '>' => (from_cube.0 + max_i, from_cube.1 + i),
+                '<' => (from_cube.0, from_cube.1 + i),
+                _ => panic!("unreacheable"),
+            };
+
+            let (to_x, to_y) = match (from_dir, invert) {
+                ('^', false) => (to_cube.0 + i, to_cube.1 + max_i),
+                ('^', true) => (to_cube.0 + max_i - i, to_cube.1 + max_i),
+                ('v', false) => (to_cube.0 + i, to_cube.1),
+                ('v', true) => (to_cube.0 + max_i - i, to_cube.1),
+                ('>', false) => (to_cube.0, to_cube.1 + i),
+                ('>', true) => (to_cube.0, to_cube.1 + max_i - i),
+                ('<', false) => (to_cube.0 + max_i, to_cube.1 + i),
+                ('<', true) => (to_cube.0 + max_i, to_cube.1 + max_i - i),
+                _ => panic!("unreacheable"),
+            };
+
+            cube_adj.insert((from_x, from_y, from_dir), (to_x, to_y, to_dir));
+        }
+    }
+
+    cube_adj
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -211,27 +254,49 @@ mod tests {
 
     #[test]
     fn sample_input_part_2() {
-        // let input = vec![
-        //     "        ...#    ",
-        //     "        .#..    ",
-        //     "        #...    ",
-        //     "        ....    ",
-        //     "...#.......#    ",
-        //     "........#...    ",
-        //     "..#....#....    ",
-        //     "..........#.    ",
-        //     "        ...#....",
-        //     "        .....#..",
-        //     "        .#......",
-        //     "        ......#.",
-        //     "",
-        //     "10R5L5R10L4R5L5",
-        // ];
-        // let lines: Vec<String> = input.iter().map(|s| s.parse().unwrap()).collect();
-        // let (map, adj, instructions) = parse(lines, 20);
+        let input = vec![
+            "        ...#    ",
+            "        .#..    ",
+            "        #...    ",
+            "        ....    ",
+            "...#.......#    ",
+            "........#...    ",
+            "..#....#....    ",
+            "..........#.    ",
+            "        ...#....",
+            "        .....#..",
+            "        .#......",
+            "        ......#.",
+            "",
+            "10R5L5R10L4R5L5",
+        ];
+        let lines: Vec<String> = input.iter().map(|s| s.parse().unwrap()).collect();
+        let (map, adj, instructions) = parse(lines, 20);
+        let cube_adj = parse_cube(
+            &map,
+            &adj,
+            4,
+            vec![(8, 0), (0, 4), (4, 4), (8, 4), (8, 8), (12, 8)],
+            vec![
+                (0, '^', 1, 'v', true),
+                (0, '<', 2, 'v', false),
+                (0, '>', 5, '<', true),
+                (1, '^', 1, 'v', true),
+                (1, '<', 5, '^', true),
+                (1, 'v', 4, '^', true),
+                (2, '^', 0, '>', false),
+                (2, 'v', 4, '>', true),
+                (3, '>', 5, 'v', true),
+                (4, '<', 2, '^', true),
+                (4, 'v', 1, '^', true),
+                (5, '^', 3, '<', true),
+                (5, '>', 0, '<', true),
+                (5, 'v', 1, '>', true),
+            ],
+        );
 
-        // let result = final_password(&map, &adj, &instructions);
+        let result = final_password(&map, &cube_adj, &instructions);
 
-        // assert_eq!(result, 5031);
+        assert_eq!(result, 5031);
     }
 }
