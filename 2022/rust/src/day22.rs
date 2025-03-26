@@ -203,7 +203,7 @@ fn parse_cube(
                 _ => panic!("unreacheable"),
             };
 
-            let (to_x, to_y) = match (from_dir, invert) {
+            let (to_x, to_y) = match (to_dir, invert) {
                 ('^', false) => (to_cube.0 + i, to_cube.1 + max_i),
                 ('^', true) => (to_cube.0 + max_i - i, to_cube.1 + max_i),
                 ('v', false) => (to_cube.0 + i, to_cube.1),
@@ -215,7 +215,9 @@ fn parse_cube(
                 _ => panic!("unreacheable"),
             };
 
-            cube_adj.insert((from_x, from_y, from_dir), (to_x, to_y, to_dir));
+            if map[to_y][to_x] == '.' {
+                cube_adj.insert((from_x, from_y, from_dir), (to_x, to_y, to_dir));
+            }
         }
     }
 
