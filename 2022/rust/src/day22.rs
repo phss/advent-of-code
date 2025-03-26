@@ -10,9 +10,30 @@ pub fn part1() -> usize {
 
 pub fn part2() -> usize {
     let lines: Vec<String> = parser::read("data/day22.txt").unwrap();
-    // let (map, adj, instructions) = parse_cube(lines, 150);
-    // final_password(&map, &adj, &instructions)
-    todo!()
+    let (map, adj, instructions) = parse(lines, 150);
+    let cube_adj = parse_cube(
+        &map,
+        &adj,
+        50,
+        vec![(50, 0), (100, 0), (50, 50), (0, 100), (50, 100), (0, 150)],
+        vec![
+            (0, '^', 5, '>', false),
+            (0, '<', 3, '>', true),
+            (1, '^', 5, '^', false),
+            (1, '>', 4, '<', true),
+            (1, 'v', 2, '<', false),
+            (2, '<', 3, 'v', false),
+            (2, '>', 1, '^', false),
+            (3, '^', 2, '>', false),
+            (3, '<', 0, '>', true),
+            (4, '>', 1, '<', true),
+            (4, 'v', 5, '<', false),
+            (5, '<', 0, 'v', false),
+            (5, 'v', 1, 'v', false),
+            (5, '>', 4, '^', false),
+        ],
+    );
+    final_password(&map, &cube_adj, &instructions)
 }
 
 fn final_password(
@@ -217,6 +238,8 @@ fn parse_cube(
 
             if map[to_y][to_x] == '.' {
                 cube_adj.insert((from_x, from_y, from_dir), (to_x, to_y, to_dir));
+            } else {
+                cube_adj.remove(&(from_x, from_y, from_dir));
             }
         }
     }
