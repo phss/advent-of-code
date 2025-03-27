@@ -1,4 +1,7 @@
+use std::collections::HashMap;
+
 use crate::parser;
+use itertools::Itertools;
 
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day23.txt").unwrap();
@@ -11,7 +14,12 @@ pub fn part2() -> usize {
 }
 
 fn count_empty_grounds(elves: Vec<(isize, isize)>) -> usize {
-    let final_elves = (0..10).fold(elves, |acc, _| round_move(acc));
+    let mut directions = vec![(0, -1), (0, 1), (-1, 0), (1, 0)];
+    let final_elves = (0..10).fold(elves, |acc, _| {
+        let new_elves = round_move(acc, &directions);
+        directions.rotate_left(1);
+        new_elves
+    });
 
     let xs: Vec<isize> = final_elves.iter().map(|elf| elf.0).collect();
     let ys: Vec<isize> = final_elves.iter().map(|elf| elf.0).collect();
@@ -24,8 +32,42 @@ fn count_empty_grounds(elves: Vec<(isize, isize)>) -> usize {
     ((1 + max_x - min_x) * (1 + max_y - min_y)) as usize - final_elves.len()
 }
 
-fn round_move(elves: Vec<(isize, isize)>) -> Vec<(isize, isize)> {
-    elves.clone()
+fn round_move(elves: Vec<(isize, isize)>, directions: &Vec<(isize, isize)>) -> Vec<(isize, isize)> {
+    let mut new_elves: Vec<(isize, isize)> = elves
+        .iter()
+        .map(|(elf_x, elf_y)| {
+            let (dir_x, dir_y) = directions
+                .iter()
+                .find(|(dir_x, dir_y)| {
+                    if *dir_x != 0 {
+                        !elves.contains(&(*elf_x + dir_x, *elf_y))
+                            && !elves.contains(&(*elf_x + dir_x, *elf_y + 1))
+                            && !elves.contains(&(*elf_x + dir_x, *elf_y - 1))
+                    } else {
+                        !elves.contains(&(*elf_x, *elf_y + dir_y))
+                            && !elves.contains(&(*elf_x + 1, *elf_y + dir_y))
+                            && !elves.contains(&(*elf_x - 1, *elf_y + dir_y))
+                    }
+                })
+                .unwrap_or(&(0, 0));
+
+            (elf_x + dir_x, elf_y + dir_y)
+        })
+        .collect();
+
+    let position_count = new_elves.iter().counts();
+    new_elves
+        .iter()
+        .enumerate()
+        .map(|(i, elf)| {
+            let elves_count = *position_count.get(&elf).unwrap();
+            if elves_count > 1 {
+                elves[i]
+            } else {
+                *elf
+            }
+        })
+        .collect()
 }
 
 fn parse(lines: Vec<String>) -> Vec<(isize, isize)> {
