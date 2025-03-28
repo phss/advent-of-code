@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::parser;
 use itertools::Itertools;
 
@@ -18,6 +16,8 @@ fn count_empty_grounds(elves: Vec<(isize, isize)>) -> usize {
     let final_elves = (0..10).fold(elves, |acc, _| {
         let new_elves = round_move(acc, &directions);
         directions.rotate_left(1);
+        print(&new_elves);
+        println!();
         new_elves
     });
 
@@ -33,7 +33,7 @@ fn count_empty_grounds(elves: Vec<(isize, isize)>) -> usize {
 }
 
 fn round_move(elves: Vec<(isize, isize)>, directions: &Vec<(isize, isize)>) -> Vec<(isize, isize)> {
-    let mut new_elves: Vec<(isize, isize)> = elves
+    let new_elves: Vec<(isize, isize)> = elves
         .iter()
         .map(|(elf_x, elf_y)| {
             let (dir_x, dir_y) = directions
@@ -68,6 +68,35 @@ fn round_move(elves: Vec<(isize, isize)>, directions: &Vec<(isize, isize)>) -> V
             }
         })
         .collect()
+}
+
+fn print(elves: &Vec<(isize, isize)>) {
+    let xs: Vec<isize> = elves.iter().map(|elf| elf.0).collect();
+    let ys: Vec<isize> = elves.iter().map(|elf| elf.0).collect();
+
+    let min_x = xs.iter().min().unwrap();
+    let max_x = xs.iter().max().unwrap();
+    let min_y = ys.iter().min().unwrap();
+    let max_y = ys.iter().max().unwrap();
+
+    let width = (max_x - min_x + 1) as usize;
+    let height = (max_y - min_y + 1) as usize;
+
+    let adjusted_elves: Vec<(usize, usize)> = elves
+        .iter()
+        .map(|elf| ((elf.0 - min_x) as usize, (elf.1 - min_y) as usize))
+        .collect();
+
+    for y in 0..height {
+        for x in 0..width {
+            if adjusted_elves.contains(&(x, y)) {
+                print!("#");
+            } else {
+                print!(".");
+            }
+        }
+        println!();
+    }
 }
 
 fn parse(lines: Vec<String>) -> Vec<(isize, isize)> {
@@ -107,7 +136,7 @@ mod tests {
         let lines: Vec<String> = input.iter().map(|s| s.parse().unwrap()).collect();
         let elves = parse(lines);
 
-        println!("{:?}", elves);
+        print(&elves);
 
         let result = count_empty_grounds(elves);
 
