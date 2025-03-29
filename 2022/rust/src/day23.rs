@@ -16,13 +16,11 @@ fn count_empty_grounds(elves: Vec<(isize, isize)>) -> usize {
     let final_elves = (0..10).fold(elves, |acc, _| {
         let new_elves = round_move(acc, &directions);
         directions.rotate_left(1);
-        print(&new_elves);
-        println!();
         new_elves
     });
 
     let xs: Vec<isize> = final_elves.iter().map(|elf| elf.0).collect();
-    let ys: Vec<isize> = final_elves.iter().map(|elf| elf.0).collect();
+    let ys: Vec<isize> = final_elves.iter().map(|elf| elf.1).collect();
 
     let min_x = xs.iter().min().unwrap();
     let max_x = xs.iter().max().unwrap();
@@ -36,9 +34,9 @@ fn round_move(elves: Vec<(isize, isize)>, directions: &Vec<(isize, isize)>) -> V
     let new_elves: Vec<(isize, isize)> = elves
         .iter()
         .map(|(elf_x, elf_y)| {
-            let (dir_x, dir_y) = directions
+            let free_directions: Vec<&(isize, isize)> = directions
                 .iter()
-                .find(|(dir_x, dir_y)| {
+                .filter(|(dir_x, dir_y)| {
                     if *dir_x != 0 {
                         !elves.contains(&(*elf_x + dir_x, *elf_y))
                             && !elves.contains(&(*elf_x + dir_x, *elf_y + 1))
@@ -49,7 +47,13 @@ fn round_move(elves: Vec<(isize, isize)>, directions: &Vec<(isize, isize)>) -> V
                             && !elves.contains(&(*elf_x - 1, *elf_y + dir_y))
                     }
                 })
-                .unwrap_or(&(0, 0));
+                .collect();
+
+            let (dir_x, dir_y): (isize, isize) = if free_directions.len() == 4 {
+                (0, 0)
+            } else {
+                free_directions.first().map(|dir| **dir).unwrap_or((0, 0))
+            };
 
             (elf_x + dir_x, elf_y + dir_y)
         })
@@ -70,9 +74,10 @@ fn round_move(elves: Vec<(isize, isize)>, directions: &Vec<(isize, isize)>) -> V
         .collect()
 }
 
+#[allow(dead_code)]
 fn print(elves: &Vec<(isize, isize)>) {
     let xs: Vec<isize> = elves.iter().map(|elf| elf.0).collect();
-    let ys: Vec<isize> = elves.iter().map(|elf| elf.0).collect();
+    let ys: Vec<isize> = elves.iter().map(|elf| elf.1).collect();
 
     let min_x = xs.iter().min().unwrap();
     let max_x = xs.iter().max().unwrap();
@@ -136,7 +141,7 @@ mod tests {
         let lines: Vec<String> = input.iter().map(|s| s.parse().unwrap()).collect();
         let elves = parse(lines);
 
-        print(&elves);
+        // print(&elves);
 
         let result = count_empty_grounds(elves);
 
