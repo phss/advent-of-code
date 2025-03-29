@@ -10,13 +10,15 @@ pub fn part1() -> usize {
 }
 
 pub fn part2() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day23.txt").unwrap();
+    let elves = parse(lines);
+    first_no_move(elves)
 }
 
 fn count_empty_grounds(elves: Vec<(isize, isize)>) -> usize {
     let mut directions = vec![(0, -1), (0, 1), (-1, 0), (1, 0)];
     let final_elves = (0..10).fold(elves, |acc, _| {
-        let new_elves = round_move(acc, &directions);
+        let new_elves = round_move(&acc, &directions);
         directions.rotate_left(1);
         new_elves
     });
@@ -32,7 +34,30 @@ fn count_empty_grounds(elves: Vec<(isize, isize)>) -> usize {
     ((1 + max_x - min_x) * (1 + max_y - min_y)) as usize - final_elves.len()
 }
 
-fn round_move(elves: Vec<(isize, isize)>, directions: &Vec<(isize, isize)>) -> Vec<(isize, isize)> {
+fn first_no_move(elves: Vec<(isize, isize)>) -> usize {
+    let mut directions = vec![(0, -1), (0, 1), (-1, 0), (1, 0)];
+    let mut count = 0;
+    let mut current_elves = elves;
+
+    loop {
+        count += 1;
+
+        let new_elves = round_move(&current_elves, &directions);
+        if current_elves == new_elves {
+            break;
+        }
+
+        current_elves = new_elves;
+        directions.rotate_left(1);
+    }
+
+    count
+}
+
+fn round_move(
+    elves: &Vec<(isize, isize)>,
+    directions: &Vec<(isize, isize)>,
+) -> Vec<(isize, isize)> {
     let elf_cache: HashSet<(isize, isize)> = elves.iter().cloned().collect();
 
     let new_elves: Vec<(isize, isize)> = elves
@@ -145,13 +170,32 @@ mod tests {
         let lines: Vec<String> = input.iter().map(|s| s.parse().unwrap()).collect();
         let elves = parse(lines);
 
-        // print(&elves);
-
         let result = count_empty_grounds(elves);
 
         assert_eq!(result, 110);
     }
 
     #[test]
-    fn sample_input_part_2() {}
+    fn sample_input_part_2() {
+        let input = vec![
+            "..............",
+            "..............",
+            ".......#......",
+            ".....###.#....",
+            "...#...#.#....",
+            "....#...##....",
+            "...#.###......",
+            "...##.#.##....",
+            "....#..#......",
+            "..............",
+            "..............",
+            "..............",
+        ];
+        let lines: Vec<String> = input.iter().map(|s| s.parse().unwrap()).collect();
+        let elves = parse(lines);
+
+        let result = first_no_move(elves);
+
+        assert_eq!(result, 20);
+    }
 }
