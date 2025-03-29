@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::parser;
 use itertools::Itertools;
 
@@ -31,6 +33,8 @@ fn count_empty_grounds(elves: Vec<(isize, isize)>) -> usize {
 }
 
 fn round_move(elves: Vec<(isize, isize)>, directions: &Vec<(isize, isize)>) -> Vec<(isize, isize)> {
+    let elf_cache: HashSet<(isize, isize)> = elves.iter().cloned().collect();
+
     let new_elves: Vec<(isize, isize)> = elves
         .iter()
         .map(|(elf_x, elf_y)| {
@@ -38,13 +42,13 @@ fn round_move(elves: Vec<(isize, isize)>, directions: &Vec<(isize, isize)>) -> V
                 .iter()
                 .filter(|(dir_x, dir_y)| {
                     if *dir_x != 0 {
-                        !elves.contains(&(*elf_x + dir_x, *elf_y))
-                            && !elves.contains(&(*elf_x + dir_x, *elf_y + 1))
-                            && !elves.contains(&(*elf_x + dir_x, *elf_y - 1))
+                        !elf_cache.contains(&(*elf_x + dir_x, *elf_y))
+                            && !elf_cache.contains(&(*elf_x + dir_x, *elf_y + 1))
+                            && !elf_cache.contains(&(*elf_x + dir_x, *elf_y - 1))
                     } else {
-                        !elves.contains(&(*elf_x, *elf_y + dir_y))
-                            && !elves.contains(&(*elf_x + 1, *elf_y + dir_y))
-                            && !elves.contains(&(*elf_x - 1, *elf_y + dir_y))
+                        !elf_cache.contains(&(*elf_x, *elf_y + dir_y))
+                            && !elf_cache.contains(&(*elf_x + 1, *elf_y + dir_y))
+                            && !elf_cache.contains(&(*elf_x - 1, *elf_y + dir_y))
                     }
                 })
                 .collect();
