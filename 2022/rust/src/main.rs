@@ -1,6 +1,6 @@
 use advent_of_code::{
     day1, day10, day11, day12, day13, day14, day15, day16, day17, day18, day19, day2, day20, day21,
-    day22, day23, day3, day4, day5, day6, day7, day8, day9,
+    day22, day23, day24, day3, day4, day5, day6, day7, day8, day9,
 };
 use std::env;
 
@@ -65,6 +65,8 @@ fn run(day: usize, part: usize) -> usize {
         (22, 2) => day22::part2,
         (23, 1) => day23::part1,
         (23, 2) => day23::part2,
+        (24, 1) => day24::part1,
+        (24, 2) => day24::part2,
         _ => panic!("No solution yet for day {} and part {}", day, part),
     };
     solution()
