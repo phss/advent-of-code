@@ -5,10 +5,20 @@ use crate::parser;
 type position = (usize, usize);
 
 pub fn part1() -> usize {
-    0
+    let lines: Vec<String> = parser::read("data/day24.txt").unwrap();
+    let (start, end, blizzards) = parse(lines);
+    min_steps(start, end, blizzards)
 }
 
 pub fn part2() -> usize {
+    0
+}
+
+fn min_steps(
+    start: (usize, usize),
+    end: (usize, usize),
+    blizzards: HashMap<position, Vec<char>>,
+) -> usize {
     0
 }
 
@@ -40,11 +50,9 @@ mod tests {
         let lines: Vec<String> = input.iter().map(|s| s.parse().unwrap()).collect();
         let (start, end, blizzards) = parse(lines);
 
-        println!("{:?}", blizzards);
+        let result = min_steps(start, end, blizzards);
 
-        // let result = min_steps(start, end, blizzards);
-
-        // assert_eq!(result, 18);
+        assert_eq!(result, 18);
     }
 
     #[test]
