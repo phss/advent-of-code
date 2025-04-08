@@ -6,25 +6,24 @@ type position = (usize, usize);
 
 pub fn part1() -> usize {
     let lines: Vec<String> = parser::read("data/day24.txt").unwrap();
-    let (start, end, blizzards) = parse(lines);
-    min_steps(start, end, blizzards)
+    let (dimensions, blizzards) = parse(lines);
+    min_steps(dimensions, blizzards)
 }
 
 pub fn part2() -> usize {
     0
 }
 
-fn min_steps(
-    start: (usize, usize),
-    end: (usize, usize),
-    blizzards: HashMap<position, Vec<char>>,
-) -> usize {
+fn min_steps((width, height): (usize, usize), blizzards: HashMap<position, Vec<char>>) -> usize {
+    let start = (1, 0);
+    let end = (width - 2, height - 1);
+
     0
 }
 
-fn parse(lines: Vec<String>) -> (position, position, HashMap<position, Vec<char>>) {
-    let start = (1, 0);
-    let end = (lines.len() - 1, lines[0].len() - 2);
+fn parse(lines: Vec<String>) -> (position, HashMap<position, Vec<char>>) {
+    let width = lines[0].len();
+    let height = lines.len();
     let mut blizzards = HashMap::new();
 
     for (y, line) in lines.iter().enumerate() {
@@ -35,7 +34,7 @@ fn parse(lines: Vec<String>) -> (position, position, HashMap<position, Vec<char>
         }
     }
 
-    (start, end, blizzards)
+    ((width, height), blizzards)
 }
 
 #[cfg(test)]
@@ -48,9 +47,9 @@ mod tests {
             "#.######", "#>>.<^<#", "#.<..<<#", "#>v.><>#", "#<^v^^>#", "######.#",
         ];
         let lines: Vec<String> = input.iter().map(|s| s.parse().unwrap()).collect();
-        let (start, end, blizzards) = parse(lines);
+        let (dimensions, blizzards) = parse(lines);
 
-        let result = min_steps(start, end, blizzards);
+        let result = min_steps(dimensions, blizzards);
 
         assert_eq!(result, 18);
     }
