@@ -64,17 +64,17 @@ fn visited_positions(moves: &Vec<Move>, rope_length: usize) -> usize {
             rope[0].1 += y;
 
             for i in 1..rope.len() {
-                if (rope[i-1].0 - rope[i].0) > 1 {
+                if (rope[i - 1].0 - rope[i].0) > 1 {
                     rope[i].0 += 1;
-                    rope[i].1 -= (rope[i].1 - rope[i-1].1).clamp(-1, 1);
-                } else if (rope[i-1].0 - rope[i].0) < -1 {
+                    rope[i].1 -= (rope[i].1 - rope[i - 1].1).clamp(-1, 1);
+                } else if (rope[i - 1].0 - rope[i].0) < -1 {
                     rope[i].0 -= 1;
-                    rope[i].1 -= (rope[i].1 - rope[i-1].1).clamp(-1, 1);
-                } else if (rope[i-1].1 - rope[i].1) > 1 {
-                    rope[i].0 -= (rope[i].0 - rope[i-1].0).clamp(-1, 1);
+                    rope[i].1 -= (rope[i].1 - rope[i - 1].1).clamp(-1, 1);
+                } else if (rope[i - 1].1 - rope[i].1) > 1 {
+                    rope[i].0 -= (rope[i].0 - rope[i - 1].0).clamp(-1, 1);
                     rope[i].1 += 1;
-                } else if (rope[i-1].1 - rope[i].1) < -1 {
-                    rope[i].0 -= (rope[i].0 - rope[i-1].0).clamp(-1, 1);
+                } else if (rope[i - 1].1 - rope[i].1) < -1 {
+                    rope[i].0 -= (rope[i].0 - rope[i - 1].0).clamp(-1, 1);
                     rope[i].1 -= 1;
                 }
             }
