@@ -1,5 +1,6 @@
 import argparse
 from os import path
+from pathlib import Path
 import shutil
 
 
@@ -26,6 +27,8 @@ def setup_challenge(challenge: str):
         if not path.isfile(dest):
             print(f"Copying {src} to {dest}")
             shutil.copyfile(src, dest)
+            file = Path(dest)
+            file.write_text(file.read_text().replace("template", challenge))
 
 
 def main():
