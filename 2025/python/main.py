@@ -1,25 +1,47 @@
 import argparse
+from os import path
+import shutil
 
 
 def run_challenge(challenge: str, part: int):
+    print(f"Running {challenge}, part {part}")
     challenge = __import__(f"challenges.{challenge}", fromlist=["part1", "part2"])
 
     match part:
         case 1:
-            challenge.part1()
+            print(challenge.part1())
         case 2:
-            challenge.part2()
+            print(challenge.part2())
         case _:
             print("No such part")
+
+
+def setup_challenge(challenge: str):
+    setup_files = {
+        "challenges/template.py": f"challenges/{challenge}.py",
+        "tests/test_template.py": f"tests/test_{challenge}.py",
+    }
+
+    for src, dest in setup_files.items():
+        if not path.isfile(dest):
+            print(f"Copying {src} to {dest}")
+            shutil.copyfile(src, dest)
 
 
 def main():
     parser = argparse.ArgumentParser(prog="Advent of Code 2025")
     parser.add_argument("challenge")
+    parser.add_argument("--mode", default="run")
     parser.add_argument("--part", type=int)
     args = parser.parse_args()
 
-    run_challenge(args.challenge, args.part)
+    match args.mode:
+        case "run":
+            run_challenge(args.challenge, args.part)
+        case "setup":
+            setup_challenge(args.challenge)
+        case _:
+            print(f"Unsupported mode: {args.mode}")
 
 
 if __name__ == "__main__":
