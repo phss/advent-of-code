@@ -8,14 +8,14 @@ def run_challenge(challenge: str, part: int):
     print(f"Running {challenge}, part {part}")
 
     with open(f"data/{challenge}.txt", "r") as file:
-        input = [line.rstrip() for line in file]
+        lines = [line.rstrip() for line in file]
 
     challenge = __import__(f"challenges.{challenge}", fromlist=["part1", "part2"])
     match part:
         case 1:
-            print(challenge.part1(input))
+            print(challenge.part1(lines))
         case 2:
-            print(challenge.part2(input))
+            print(challenge.part2(lines))
         case _:
             print("No such part")
 
