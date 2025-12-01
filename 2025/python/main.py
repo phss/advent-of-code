@@ -24,6 +24,7 @@ def setup_challenge(challenge: str):
     setup_files = {
         "challenges/template.py": f"challenges/{challenge}.py",
         "tests/test_template.py": f"tests/test_{challenge}.py",
+        "data/template.txt": f"data/{challenge}.txt",
     }
 
     for src, dest in setup_files.items():
