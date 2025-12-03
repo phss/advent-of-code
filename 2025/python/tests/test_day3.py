@@ -12,4 +12,4 @@ class TestTemplate:
     def test_part2(self):
         result = challenge.part2(self.lines)
 
-        assert result is None
+        assert result == 3121910778619
