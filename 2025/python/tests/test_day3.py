@@ -1,7 +1,7 @@
 import challenges.day3 as challenge
 
 
-class TestTemplate:
+class TestChallenge:
     lines = ["987654321111111", "811111111111119", "234234234234278", "818181911112111"]
 
     def test_part1(self):

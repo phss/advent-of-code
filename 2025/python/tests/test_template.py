@@ -1,7 +1,7 @@
 import challenges.template as challenge
 
 
-class TestTemplate:
+class TestChallenge:
     lines = []
 
     def test_part1(self):

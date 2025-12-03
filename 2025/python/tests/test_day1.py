@@ -1,7 +1,7 @@
 import challenges.day1 as challenge
 
 
-class TestTemplate:
+class TestChallenge:
     lines = [
         "L68",
         "L30",
