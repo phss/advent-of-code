@@ -1,15 +1,28 @@
-def part1(map: list[str]) -> int:
-    rolls = __rolls_to_remove(map)
+def part1(lines: list[str]) -> int:
+    rolls = __rolls_to_remove(lines)
     return len(rolls)
 
 
 def part2(lines: list[str]) -> int:
-    None
+    total_rolls_removed = 0
+
+    while True:
+        rolls = __rolls_to_remove(lines)
+        removed = len(rolls)
+        total_rolls_removed += removed
+
+        if removed == 0:
+            break
+
+        for x, y in rolls:
+            lines[y] = lines[y][:x] + "x" + lines[y][x + 1 :]
+
+    return total_rolls_removed
 
 
-def __rolls_to_remove(map: list[str]) -> list[(int, int)]:
-    max_x = len(map[0])
-    max_y = len(map)
+def __rolls_to_remove(lines: list[str]) -> list[(int, int)]:
+    max_x = len(lines[0])
+    max_y = len(lines)
     rolls_to_remove = []
 
     directions = [
@@ -24,7 +37,7 @@ def __rolls_to_remove(map: list[str]) -> list[(int, int)]:
     ]
     for y in range(max_y):
         for x in range(max_x):
-            if map[y][x] == ".":
+            if lines[y][x] != "@":
                 continue
 
             count = 0
@@ -37,7 +50,7 @@ def __rolls_to_remove(map: list[str]) -> list[(int, int)]:
                     and check_x < max_x
                     and check_y >= 0
                     and check_y < max_y
-                    and map[check_y][check_x] == "@"
+                    and lines[check_y][check_x] == "@"
                 ):
                     count += 1
 
