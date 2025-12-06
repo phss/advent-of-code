@@ -8,29 +8,10 @@ def part1(lines: list[str]) -> int:
 
 def part2(lines: list[str]) -> int:
     (all_numbers, operations) = __parse_cephalopod_input(lines)
-    return __calculate_worsheet_answers_2(all_numbers, operations)
+    return __calculate_worsheet_answers(all_numbers, operations)
 
 
 def __calculate_worsheet_answers(
-    all_numbers: list[list[int]], operations: list[str]
-) -> int:
-    sum_of_answers = 0
-
-    for i, operation in enumerate(operations):
-        answer = all_numbers[0][i]
-        for numbers in all_numbers[1:]:
-            match operation:
-                case "+":
-                    answer += numbers[i]
-                case "*":
-                    answer *= numbers[i]
-
-        sum_of_answers += answer
-
-    return sum_of_answers
-
-
-def __calculate_worsheet_answers_2(
     all_numbers: list[list[int]], operations: list[str]
 ) -> int:
     sum_of_answers = 0
@@ -51,6 +32,7 @@ def __calculate_worsheet_answers_2(
 
 def __parse_human_input(lines: list[str]) -> list:
     all_numbers = [list(map(int, __list_from(line))) for line in lines[:-1]]
+    all_numbers = [[row[i] for row in all_numbers] for i in range(len(all_numbers[0]))]
     operations = __list_from(lines[-1])
     return (all_numbers, operations)
 
