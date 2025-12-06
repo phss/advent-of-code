@@ -2,7 +2,17 @@ import re
 
 
 def part1(lines: list[str]) -> int:
-    (all_numbers, operations) = __parse_input(lines)
+    (all_numbers, operations) = __parse_human_input(lines)
+    return __calculate_worsheet_answers(all_numbers, operations)
+
+
+def part2(lines: list[str]) -> int:
+    None
+
+
+def __calculate_worsheet_answers(
+    all_numbers: list[list[int]], operations: list[str]
+) -> int:
     sum_of_answers = 0
 
     for i, operation in enumerate(operations):
@@ -19,16 +29,11 @@ def part1(lines: list[str]) -> int:
     return sum_of_answers
 
 
-def part2(lines: list[str]) -> int:
-    None
+def __parse_human_input(lines: list[str]) -> list:
+    def __list_from(line: str) -> list:
+        sanitised_string = re.sub(r"\s+", " ", line.strip())
+        return sanitised_string.split(" ")
 
-
-def __parse_input(lines: list[str]) -> list:
     all_numbers = [list(map(int, __list_from(line))) for line in lines[:-1]]
     operations = __list_from(lines[-1])
     return (all_numbers, operations)
-
-
-def __list_from(line: str) -> list:
-    sanitised_string = re.sub(r"\s+", " ", line.strip())
-    return sanitised_string.split(" ")
