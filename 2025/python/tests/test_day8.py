@@ -26,9 +26,10 @@ class TestChallenge:
     ]
 
     def test_part1(self):
-        result = challenge.part1(self.lines)
+        boxes = challenge.parse_input(self.lines)
+        result = challenge.mult_three_largest_circuits(boxes, 10)
 
-        assert result is None
+        assert result == 40
 
     def test_part2(self):
         result = challenge.part2(self.lines)
