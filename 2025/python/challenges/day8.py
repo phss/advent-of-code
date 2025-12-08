@@ -9,7 +9,28 @@ def part1(lines: list[str]) -> int:
 
 
 def part2(lines: list[str]) -> int:
-    None
+    boxes = parse_input(lines)
+    connections = list_shortest_connections(boxes)
+
+    circuits_map = {}
+    for i, box in enumerate(boxes):
+        circuits_map[box] = i
+
+    while True:
+        _, (a, b) = heappop(connections)
+        a_circuit = circuits_map[a]
+        b_circuit = circuits_map[b]
+
+        all_connected = True
+        for box, circuit in circuits_map.items():
+            if circuit == b_circuit:
+                circuits_map[box] = a_circuit
+            all_connected = all_connected and circuits_map[box] == a_circuit
+
+        if all_connected:
+            break
+
+    return a[0] * b[0]
 
 
 def mult_three_largest_circuits(
