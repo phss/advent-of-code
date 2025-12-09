@@ -1,6 +1,9 @@
 from collections import defaultdict
 from itertools import pairwise
 
+X = 0
+Y = 1
+
 
 def part1(lines: list[str]) -> int:
     tiles = __parse_input(lines)
@@ -21,38 +24,41 @@ def part2(lines: list[str]) -> int:
     max_area = 0
     for i, a in enumerate(tiles[:-1]):
         for b in tiles[i + 1 :]:
-            min_x = min(a[0], b[0])
-            max_x = max(a[0], b[0])
-            min_y = min(a[1], b[1])
-            max_y = max(a[1], b[1])
-            valid = True
-
-            for p1, p2 in vlines:
-                line_x = p1[0]
-                line_min_y = p1[1]
-                line_max_y = p2[1]
-
-                intersects_on_x = line_x > min_x and line_x < max_x
-                out_of_bounds_on_y = line_min_y >= max_y or line_max_y <= min_y
-
-                if intersects_on_x:
-                    valid = valid and out_of_bounds_on_y
-
-            for p1, p2 in hlines:
-                line_y = p1[1]
-                line_min_x = p1[0]
-                line_max_x = p2[0]
-
-                intersects_on_y = line_y > min_y and line_y < max_y
-                out_of_bounds_on_x = line_min_x >= max_x or line_max_x <= min_x
-
-                if intersects_on_y:
-                    valid = valid and out_of_bounds_on_x
-
-            if valid:
+            if __is_valid(vlines, a, b, X, Y) and __is_valid(hlines, a, b, Y, X):
                 max_area = max(max_area, __area(a, b))
 
     return max_area
+
+
+def __is_valid(
+    lines: list[tuple[int, int]],
+    a: tuple[int, int],
+    b: tuple[int, int],
+    main_axis: int,
+    other_axis: int,
+):
+    min_main_axis = min(a[main_axis], b[main_axis])
+    max_main_axis = max(a[main_axis], b[main_axis])
+    min_other_axis = min(a[other_axis], b[other_axis])
+    max_other_axis = max(a[other_axis], b[other_axis])
+
+    for p1, p2 in lines:
+        line_main_axis = p1[main_axis]
+        line_min_other_axis = p1[other_axis]
+        line_max_other_axis = p2[other_axis]
+
+        intersects_on_main_axis = (
+            line_main_axis > min_main_axis and line_main_axis < max_main_axis
+        )
+        intersects_on_other_axis = not (
+            line_min_other_axis >= max_other_axis
+            or line_max_other_axis <= min_other_axis
+        )
+
+        if intersects_on_main_axis and intersects_on_other_axis:
+            return False
+
+    return True
 
 
 def __vertical_lines(tiles: list[tuple[int, int]]):
