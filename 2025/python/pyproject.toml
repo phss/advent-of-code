@@ -8,6 +8,8 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "numpy>=2.3.5",
     "pytest>=8.4.2",
     "ruff>=0.14.5",
+    "z3-solver>=4.15.4.0",
 ]
