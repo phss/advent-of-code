@@ -1,4 +1,4 @@
-from heapq import heappop, heappush
+from collections import deque
 import re
 
 
@@ -9,7 +9,6 @@ def part1(lines: list[str]) -> int:
     for machine in machines:
         lights, buttons, _ = machine
         total_button_presses += __min_button_presses(lights, buttons)
-        print(machine, total_button_presses)
 
     return total_button_presses
 
@@ -19,11 +18,11 @@ def part2(lines: list[str]) -> int:
 
 
 def __min_button_presses(end_lights: str, buttons: list[list[int]]) -> int:
-    search = []
-    heappush(search, (0, len(end_lights) * "."))
+    search = deque()
+    search.append((0, len(end_lights) * "."))
 
     while True:
-        presses, lights = heappop(search)  # noqa: F821
+        presses, lights = search.popleft()
         if lights == end_lights:
             return presses
 
@@ -34,7 +33,7 @@ def __min_button_presses(end_lights: str, buttons: list[list[int]]) -> int:
                     lights_after_button[i] = "#"
                 else:
                     lights_after_button[i] = "."
-            heappush(search, (presses + 1, "".join(lights_after_button)))
+            search.append((presses + 1, "".join(lights_after_button)))
 
 
 def __parse_input(lines: list[str]) -> list:
